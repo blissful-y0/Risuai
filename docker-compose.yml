@@ -3,10 +3,26 @@ name: risuai
 services:
   risuai:
     container_name: risuai
-    image: ghcr.io/kwaroran/risuai:latest
+    image: blissful-y0/risuai:local
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: always
     ports:
       - 6001:6001
+    environment:
+      # Step 0에서는 Gateway를 아직 끄고, 정적 asset/cache 동작만 먼저 안정화한다.
+      NODE_ENV: production
+      RISU_GATEWAY_MODE: "false"
+      # Tunnel이 TLS를 종료하므로 origin 서버는 HTTP만 떠도 충분하다.
+      RISU_ENABLE_HTTPS: "false"
+    healthcheck:
+      # curl 의존성을 늘리지 않기 위해 Node 내장 fetch로 헬스체크한다.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:6001/api/health').then((res)=>{if(!res.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     volumes:
       - risuai-save:/app/save
 

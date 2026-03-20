@@ -1,11 +1,104 @@
 const express = require('express');
+const compression = require('compression');
 const app = express();
 const path = require('path');
 const htmlparser = require('node-html-parser');
 const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('fs');
 const fs = require('fs/promises')
 const nodeCrypto = require('crypto')
-app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
+const DIST_PATH = path.join(process.cwd(), 'dist');
+const DIST_ASSETS_PATH = path.join(DIST_PATH, 'assets');
+const ENABLE_HTTPS = process.env.RISU_ENABLE_HTTPS !== 'false';
+
+function applyHtmlNoCacheHeaders(res) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+}
+
+function applyApiNoCacheHeaders(res) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+}
+
+function applyProxyPassthroughHeaders(res) {
+    // 프록시/SSE 응답은 CDN이나 중간 계층이 내용을 바꾸지 않도록 no-transform을 강제한다.
+    applyApiNoCacheHeaders(res);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, no-transform');
+    res.setHeader('X-Accel-Buffering', 'no');
+}
+
+function applyImmutableAssetHeaders(res) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+}
+
+function applyShortAssetHeaders(res) {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+}
+
+function isHashedAssetPath(filePath) {
+    return /[.-][a-f0-9]{8,}\./i.test(path.basename(filePath));
+}
+
+function shouldCompress(req, res) {
+    // 프록시/API는 압축보다 원본 전달 안정성이 우선이라 Express compression 대상에서 제외한다.
+    if (
+        req.path.startsWith('/api/') ||
+        req.path === '/proxy' ||
+        req.path === '/proxy2' ||
+        req.path.startsWith('/hub-proxy/')
+    ) {
+        return false;
+    }
+    return compression.filter(req, res);
+}
+
+// Cloudflare Tunnel 뒤에서는 원본 IP와 프로토콜 정보가 프록시 헤더로 들어오므로 이를 신뢰하도록 설정한다.
+app.set('trust proxy', true);
+app.disable('x-powered-by');
+app.use(compression({ filter: shouldCompress }));
+app.use((req, res, next) => {
+    if (
+        req.path === '/proxy' ||
+        req.path === '/proxy2' ||
+        req.path.startsWith('/hub-proxy/')
+    ) {
+        applyProxyPassthroughHeaders(res);
+    }
+    else if (req.path.startsWith('/api/')) {
+        applyApiNoCacheHeaders(res);
+    }
+    next();
+});
+
+app.use('/assets', express.static(DIST_ASSETS_PATH, {
+    index: false,
+    immutable: true,
+    maxAge: '365d',
+    setHeaders: (res) => {
+        // 해시 기반 asset은 새 빌드 시 파일명이 바뀌므로 장기 캐시가 안전하다.
+        applyImmutableAssetHeaders(res);
+    }
+}));
+app.use(express.static(DIST_PATH, {
+    index: false,
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
+            applyHtmlNoCacheHeaders(res);
+            return;
+        }
+
+        if (isHashedAssetPath(filePath)) {
+            applyImmutableAssetHeaders(res);
+            return;
+        }
+
+        if (/\.(?:js|mjs|css|json|png|jpe?g|gif|svg|webp|ico|woff2?|ttf)$/i.test(filePath)) {
+            applyShortAssetHeaders(res);
+        }
+    }
+}));
 app.use(express.json({ limit: '100mb' }));
 app.use(express.raw({ type: 'application/octet-stream', limit: '100mb' }));
 app.use(express.text({ limit: '100mb' }));
@@ -48,11 +141,13 @@ app.get('/', async (req, res, next) => {
     console.log(`[Server] ${timestamp} | Connection from: ${clientIP}`);
     
     try {
-        const mainIndex = await fs.readFile(path.join(process.cwd(), 'dist', 'index.html'))
+        const mainIndex = await fs.readFile(path.join(DIST_PATH, 'index.html'))
         const root = htmlparser.parse(mainIndex)
         const head = root.querySelector('head')
         head.innerHTML = `<script>globalThis.__NODE__ = true</script>` + head.innerHTML
-        
+
+        // HTML은 앱 진입점이라 오래 캐시되면 새 배포가 반영되지 않는다.
+        applyHtmlNoCacheHeaders(res)
         res.send(root.toString())
     } catch (error) {
         console.log(error)
@@ -354,6 +449,7 @@ async function getSionywAccessToken() {
 
 async function hubProxyFunc(req, res) {
     const excludedHeaders = [
+        'cache-control',
         'content-encoding',
         'content-length',
         'transfer-encoding'
@@ -407,6 +503,8 @@ async function hubProxyFunc(req, res) {
             }
             res.setHeader(key, value);
         }
+        // hub-proxy도 프록시 계층이므로 캐시/변형 금지 헤더를 마지막에 다시 강제한다.
+        applyProxyPassthroughHeaders(res);
         res.status(response.status);
 
         if (response.status >= 300 && response.status < 400 && response.headers.get('location')) {
@@ -425,6 +523,7 @@ async function hubProxyFunc(req, res) {
                 }
                 res.setHeader(key, value);
             }
+            applyProxyPassthroughHeaders(res);
             res.status(redirectResponse.status);
             if (redirectResponse.body) {
                 await pipeline(redirectResponse.body, res);
@@ -641,6 +740,17 @@ app.post('/api/write', async (req, res, next) => {
     }
 });
 
+app.get('/api/health', (_req, res) => {
+    // 헬스체크는 캐시되면 의미가 없으므로 항상 즉시 평가되도록 no-store를 유지한다.
+    applyApiNoCacheHeaders(res);
+    res.send({
+        success: true,
+        status: 'ok',
+        https: ENABLE_HTTPS,
+        gatewayMode: process.env.RISU_GATEWAY_MODE === 'true'
+    });
+});
+
 const oauthData = {
     client_id: '',
     client_secret: '',
@@ -776,7 +886,7 @@ async function startServer() {
     try {
       
         const port = process.env.PORT || 6001;
-        const httpsOptions = await getHttpsOptions();
+        const httpsOptions = ENABLE_HTTPS ? await getHttpsOptions() : null;
 
         if (httpsOptions) {
             // HTTPS
@@ -785,6 +895,7 @@ async function startServer() {
                 console.log(`[Server] https://localhost:${port}/`);
             });
         } else {
+            // Tunnel/리버스프록시 뒤에서는 원본 서버를 HTTP로만 띄우는 편이 단순하고 충돌이 적다.
             // HTTP
             app.listen(port, () => {
                 console.log("[Server] HTTP server is running.");
