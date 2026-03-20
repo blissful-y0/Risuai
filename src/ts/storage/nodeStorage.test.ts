@@ -155,4 +155,35 @@ describe('NodeStorage', () => {
 
         await expect(storage.getItem('database/database.bin')).rejects.toBe('already set')
     })
+
+    test('로그인 요청이 429이면 Error 객체로 실패하고 사용자 대기 처리도 호출한다', async () => {
+        const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+            const url = String(input)
+            if (url === '/api/test_auth') {
+                return makeJsonResponse({ status: 'incorrect' })
+            }
+            if (url === '/api/crypto') {
+                return new Response('hashed-password', { status: 200 })
+            }
+            if (url === '/api/login') {
+                return makeJsonResponse({ error: 'Too many attempts. Please wait and try again later.' }, 429)
+            }
+            throw new Error(`unexpected fetch: ${url}`)
+        })
+        vi.stubGlobal('fetch', fetchMock)
+
+        const storage = new NodeStorage()
+        vi.spyOn(storage, 'createAuth').mockResolvedValue('header.payload.signature')
+        vi.spyOn(storage, 'getKeyPair').mockResolvedValue({
+            privateKey: {} as CryptoKey,
+            publicKey: {} as CryptoKey,
+        })
+
+        const thrown = await storage.getItem('database/database.bin').catch((error) => error)
+
+        expect(thrown).toBeInstanceOf(Error)
+        expect(thrown.message).toBe('Too many attempts. Please wait and try again later.')
+        expect(alertErrorMock).toHaveBeenCalledTimes(1)
+        expect(waitAlertMock).toHaveBeenCalledTimes(1)
+    })
 })

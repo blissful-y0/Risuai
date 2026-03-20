@@ -169,7 +169,7 @@ export class NodeStorage{
         if(response.status === 429){
             alertError(`Too many attempts. Please wait and try again later.`)
             await waitAlert()
-            throw 'Too many attempts. Please wait and try again later.'
+            throw new Error('Too many attempts. Please wait and try again later.')
         }
 
         if(!response.ok){

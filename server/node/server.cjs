@@ -25,8 +25,9 @@ function applyApiNoCacheHeaders(res) {
 
 function applyProxyPassthroughHeaders(res) {
     // 프록시/SSE 응답은 CDN이나 중간 계층이 내용을 바꾸지 않도록 no-transform을 강제한다.
-    applyApiNoCacheHeaders(res);
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, no-transform');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.setHeader('X-Accel-Buffering', 'no');
 }
 
