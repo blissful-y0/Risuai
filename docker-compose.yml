@@ -16,6 +16,8 @@ services:
       RISU_GATEWAY_MODE: "false"
       # Tunnel이 TLS를 종료하므로 origin 서버는 HTTP만 떠도 충분하다.
       RISU_ENABLE_HTTPS: "false"
+      # iPhone PWA에서는 SW가 자산 캐시와 설치 흐름에 도움이 되므로 기본적으로 켜 둔다.
+      RISU_ENABLE_SERVICE_WORKER: "true"
     healthcheck:
       # curl 의존성을 늘리지 않기 위해 Node 내장 fetch로 헬스체크한다.
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:6001/api/health').then((res)=>{if(!res.ok)process.exit(1)}).catch(()=>process.exit(1))"]

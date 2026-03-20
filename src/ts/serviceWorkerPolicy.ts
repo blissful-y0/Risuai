@@ -1,13 +1,14 @@
 interface ServiceWorkerPolicyOptions {
+    allowNodeServiceWorker: boolean
     hasServiceWorker: boolean
     isNodeServer: boolean
     isTauri: boolean
 }
 
 export function shouldEnableServiceWorker(options: ServiceWorkerPolicyOptions) {
-    // Node self-host는 서버가 자산을 직접 제공하므로 SW 초기화 이득보다 /sw 경로 불일치 리스크가 더 크다.
+    // Node self-host는 기본적으로 SW를 끄되, PWA 용도로 명시적으로 켠 서버만 예외로 허용한다.
     if (options.isNodeServer) {
-        return false
+        return options.allowNodeServiceWorker && options.hasServiceWorker
     }
 
     // Tauri는 브라우저 정적 호스팅 환경이 아니므로 웹 서비스워커를 켤 필요가 없다.

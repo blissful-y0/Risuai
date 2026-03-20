@@ -178,8 +178,9 @@ export async function loadData() {
                     return
                 }
                 LoadingStatusState.text = "Checking Service Worker..."
-                // Node self-host에서는 서비스워커 대신 서버가 자산을 직접 내리므로 /sw 초기화를 아예 건너뛴다.
+                // Node self-host에서는 기본적으로 SW를 끄되, PWA 용도로 서버가 켠 경우만 다시 허용한다.
                 if (shouldEnableServiceWorker({
+                    allowNodeServiceWorker: getNodeServiceWorkerFlag(),
                     hasServiceWorker: !!navigator.serviceWorker,
                     isNodeServer,
                     isTauri,
@@ -277,6 +278,12 @@ async function registerSw() {
     if (!(da.status >= 200 && da.status < 300)) {
         location.reload();
     }
+}
+
+function getNodeServiceWorkerFlag() {
+    return !!(globalThis as typeof globalThis & {
+        __RISU_ENABLE_SERVICE_WORKER__?: boolean
+    }).__RISU_ENABLE_SERVICE_WORKER__
 }
 
 /**

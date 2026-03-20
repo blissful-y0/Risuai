@@ -9,6 +9,7 @@ const nodeCrypto = require('crypto')
 const DIST_PATH = path.join(process.cwd(), 'dist');
 const DIST_ASSETS_PATH = path.join(DIST_PATH, 'assets');
 const ENABLE_HTTPS = process.env.RISU_ENABLE_HTTPS !== 'false';
+const ENABLE_SERVICE_WORKER = process.env.RISU_ENABLE_SERVICE_WORKER === 'true';
 
 function applyHtmlNoCacheHeaders(res) {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -144,7 +145,8 @@ app.get('/', async (req, res, next) => {
         const mainIndex = await fs.readFile(path.join(DIST_PATH, 'index.html'))
         const root = htmlparser.parse(mainIndex)
         const head = root.querySelector('head')
-        head.innerHTML = `<script>globalThis.__NODE__ = true</script>` + head.innerHTML
+        // Node self-host 런타임 플래그를 head에 주입해, 클라이언트가 PWA용 SW 허용 여부를 서버 설정대로 판단하게 한다.
+        head.innerHTML = `<script>globalThis.__NODE__ = true; globalThis.__RISU_ENABLE_SERVICE_WORKER__ = ${ENABLE_SERVICE_WORKER ? 'true' : 'false'}</script>` + head.innerHTML
 
         // HTML은 앱 진입점이라 오래 캐시되면 새 배포가 반영되지 않는다.
         applyHtmlNoCacheHeaders(res)
@@ -747,7 +749,8 @@ app.get('/api/health', (_req, res) => {
         success: true,
         status: 'ok',
         https: ENABLE_HTTPS,
-        gatewayMode: process.env.RISU_GATEWAY_MODE === 'true'
+        gatewayMode: process.env.RISU_GATEWAY_MODE === 'true',
+        serviceWorker: ENABLE_SERVICE_WORKER
     });
 });
 
