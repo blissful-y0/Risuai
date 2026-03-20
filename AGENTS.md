@@ -1,248 +1,387 @@
+# Risuai — AI Assistant Context
+
+> This file is the canonical project reference for all AI coding assistants.
+> Other files (CLAUDE.md, GEMINI.md, .cursorrules, .github/copilot-instructions.md) reference this file.
+
 ## Project Overview
 
 Risuai is a cross-platform AI chatting application built with:
-- **Frontend**: Svelte 5 + TypeScript
-- **Desktop**: Tauri 2.5 (Rust backend)
+- **Frontend**: Svelte 5 (Runes) + TypeScript 5.9
+- **Desktop**: Tauri 2.9 (Rust backend)
 - **Build Tool**: Vite 7
 - **Styling**: Tailwind CSS 4
 - **Package Manager**: pnpm
+- **Testing**: Vitest + fast-check (property-based)
 
-The application allows users to chat with various AI models (OpenAI, Claude, Gemini, and more) through a single unified interface. It features a rich user interface with support for themes, plugins, custom assets, and advanced memory systems.
+Users chat with various AI models (OpenAI, Claude, Gemini, etc.) through a unified interface with themes, plugins, custom assets, and advanced memory systems.
 
 ## Directory Structure
 
 ```
-risuai-newest/
-├── src/                    # Main application source code
-│   ├── ts/                 # TypeScript business logic
-│   ├── lib/                # Svelte UI components
-│   ├── lang/               # Internationalization (i18n)
-│   ├── etc/                # Documentation and extras
-│   └── test/               # Test files
-├── src-tauri/              # Tauri desktop backend (Rust)
-├── server/                 # Self-hosting server implementations
-│   ├── node/               # Node.js server (current)
-│   └── hono/               # Hono framework server (future)
-├── public/                 # Static assets
-├── dist/                   # Build output
-├── resources/              # Application resources
-└── .github/workflows/      # CI/CD pipelines
+risuai/
+├── src/                       # Main application source
+│   ├── ts/                    # TypeScript business logic
+│   ├── lib/                   # Svelte UI components
+│   ├── lang/                  # i18n (en, ko, cn, zh-Hant, vi, de, es)
+│   └── App.svelte             # Root component (conditional rendering, no router)
+├── src-tauri/                 # Tauri desktop backend (Rust)
+├── server/
+│   ├── node/                  # Express.js self-hosting server
+│   └── hono/                  # Hono server (in development)
+├── plugins/                   # Plugin source files (.js)
+├── public/                    # Static assets
+└── .github/workflows/         # CI/CD
 ```
 
-### Source Code Structure (`/src`)
+### `/src/ts` — Business Logic
 
-#### `/src/ts` - TypeScript Business Logic
-
-| Directory/File | Purpose |
-|----------------|---------|
-| `storage/` | Data persistence layer (database, save files, platform adapters) |
-| `process/` | Core processing logic (chat, requests, memory, models) |
-| `plugins/` | Plugin system (API v3.0, sandboxing, security) |
-| `gui/` | GUI utilities (colorscheme, highlight, animation) |
-| `drive/` | Cloud sync and backup |
-| `translator/` | Translation system |
-| `model/` | Model definitions and integrations |
-| `sync/` | Multi-user synchronization |
-| `cbs.ts` | Callback system |
+| Path | Purpose |
+|------|---------|
+| `storage/database.svelte.ts` | **Central data model** — Database, character, Chat, Message interfaces |
+| `stores.svelte.ts` | **Reactive state** — DBState, selectedCharID, UI stores |
+| `process/index.svelte.ts` | **Chat pipeline** — sendChat() orchestration |
+| `process/request/` | API request handlers (openAI.ts, anthropic.ts, google.ts) |
+| `process/memory/` | Memory systems (hypav3.ts, hypav2.ts, supaMemory.ts) |
+| `process/models/` | Provider integrations (NAI, OpenRouter, Ooba, Ollama) |
+| `process/templates/` | Prompt templates and formatting |
+| `process/mcp/` | Model Context Protocol support |
+| `process/lorebook.svelte.ts` | Lorebook/world info management |
+| `process/scriptings.ts` | Regex-based output transformation |
+| `process/triggers.ts` | Event-based automation |
+| `process/stableDiff.ts` | Stable Diffusion integration |
+| `process/tts.ts` | Text-to-speech |
+| `plugins/plugins.svelte.ts` | Plugin system (API v3.0, sandboxing) |
 | `characterCards.ts` | Character card import/export |
-| `parser.svelte.ts` | Message parsing |
-| `stores.svelte.ts` | Svelte stores for state management |
-| `globalApi.svelte.ts` | Global API methods |
-| `bootstrap.ts` | Application initialization |
+| `cbs.ts` | Callback/event system |
+| `globalApi.svelte.ts` | Utility functions (file I/O, fetch, assets) |
+| `bootstrap.ts` | App initialization |
+| `parser.svelte.ts` | Message parsing, markdown, DOMPurify |
+| `gui/` | Color scheme, highlight, animations |
+| `model/modellist.ts` | Model registry |
+| `drive/` | Cloud sync & backup |
+| `translator/` | Translation system |
 
-#### `/src/ts/process` - Core Processing
+### `/src/lib` — UI Components
 
-| Directory/File | Purpose |
-|----------------|---------|
-| `index.svelte.ts` | Main chat processing orchestration |
-| `request/` | API request handlers (OpenAI, Anthropic, Google) |
-| `memory/` | Memory systems (HypaMemoryV2/V3, SupaMemory, HanuraiMemory) |
-| `models/` | AI model integrations (NAI, OpenRouter, Ooba, local models) |
-| `templates/` | Prompt templates and formatting |
-| `mcp/` | Model Context Protocol support |
-| `files/` | File handling (inlays, multisend) |
-| `embedding/` | Vector embeddings |
-| `lorebook.svelte.ts` | Lorebook/world info management |
-| `scriptings.ts` | Scripting system |
-| `triggers.ts` | Event triggers |
-| `stableDiff.ts` | Stable Diffusion integration |
-| `tts.ts` | Text-to-speech |
-
-#### `/src/lib` - Svelte UI Components
-
-| Directory | Purpose |
-|-----------|---------|
-| `ChatScreens/` | Chat interface components |
-| `UI/` | General UI components (GUI, NewGUI, Realm) |
-| `Setting/` | Settings panels |
-| `SideBars/` | Sidebar components (Scripts, LoreBook) |
-| `Others/` | Miscellaneous components |
+| Path | Purpose |
+|------|---------|
+| `ChatScreens/` | Chat interface (Chat.svelte, ChatScreen.svelte, Message.svelte) |
+| `UI/GUI/` | Classic GUI components |
+| `UI/NewGUI/` | New GUI system |
+| `UI/Realm/` | Realm popup system |
+| `Setting/` | Settings panels (BotSettings.svelte, Pages/*) |
+| `SideBars/` | Sidebar (Scripts, LoreBook) |
 | `Mobile/` | Mobile-specific UI |
-| `Playground/` | Testing/playground features |
 | `VisualNovel/` | Visual novel mode |
 | `LiteUI/` | Lightweight UI variant |
+| `Others/` | Alerts, catalogs, pro tools |
 
-## Building and Running
-
-### Prerequisites
-
-- Node.js and pnpm
-- Rust and Cargo (for Tauri builds)
-
-### Development
+## Commands
 
 ```bash
-# Web development server
-pnpm dev
-
-# Tauri desktop development
-pnpm tauri dev
+pnpm dev              # Web dev server (port 5174)
+pnpm tauri dev        # Tauri desktop dev
+pnpm build            # Web production build (with sourcemap)
+pnpm buildsite        # Web build for hosting
+pnpm tauribuild       # Vite build for Tauri
+pnpm tauri build      # Full Tauri desktop build
+pnpm check            # Svelte/TypeScript type checking
+pnpm test             # Run Vitest tests
+pnpm hono:build       # Hono server build
+pnpm runserver        # Node.js self-hosting server
 ```
 
-### Production Builds
+## Coding Conventions
 
-```bash
-# Web build
-pnpm build
+### File Naming
 
-# Web build for hosting
-pnpm buildsite
+| Extension | Usage | Example |
+|-----------|-------|---------|
+| `.svelte` | UI components | `Chat.svelte`, `Message.svelte` |
+| `.svelte.ts` | Reactive TS with runes ($state, $effect) | `stores.svelte.ts`, `plugins.svelte.ts` |
+| `.ts` | Pure TypeScript logic | `util.ts`, `alert.ts` |
+| `.cjs` | CommonJS (Node server) | `server.cjs` |
 
-# Tauri desktop build
-pnpm tauribuild
-pnpm tauri build
+- Components: **PascalCase** (`ChatScreen.svelte`)
+- Logic files: **camelCase** (`globalApi.svelte.ts`)
 
-# Hono server build
-pnpm hono:build
+### Imports
+
+```typescript
+// Use absolute 'src/' alias (configured in vite.config.ts)
+import { DBState } from 'src/ts/stores.svelte'
+import { language } from 'src/lang'
+import type { OpenAIChat } from 'src/ts/process/index.svelte'
+
+// Order: third-party → internal → types
+import { get, writable } from 'svelte/store'
+import { downloadFile } from '../globalApi.svelte'
+import type { character } from '../storage/database.svelte'
 ```
-
-### Type Checking
-
-```bash
-pnpm check
-```
-
-## Development Conventions
-
-### Coding Style
-
-- The project uses Prettier for code formatting
-- Ensure code is formatted before committing
 
 ### State Management
 
-The project uses Svelte 5 Runes system:
-- `$state`, `$derived`, `$effect` for reactive state
-- Svelte stores (writable, readable) in `stores.svelte.ts`
+The project uses **both** Svelte 5 Runes and legacy Svelte stores:
 
-Key stores:
-- `DBState` - Database state
-- `selectedCharID` - Current character
-- `settingsOpen`, `sideBarStore`, `MobileGUI` - UI state
-- `loadedStore`, `alertStore` - Application state
-- `DynamicGUI` - Responsive layout switching
+```typescript
+// Svelte 5 Runes — preferred for new code
+export const DBState = $state({ db: {} as Database })
+export const LoadingStatusState = $state({ text: '' })
 
-### File Naming Conventions
+// Legacy stores — still used widely
+export const selectedCharID = writable(-1)
+export const settingsOpen = writable(false)
 
-- `.svelte.ts` - Svelte 5 files with runes
-- `.svelte` - Svelte component files
-- Use camelCase for file names
+// Access store value synchronously
+import { get } from 'svelte/store'
+const charId = get(selectedCharID)
+```
 
-### Testing
+### Component Pattern (Svelte 5)
 
-- Basic test file in `src/test/runTest.ts`
-- Run `pnpm check` for type checking
-- No comprehensive test suite; relies on TypeScript for type safety
+```svelte
+<script lang="ts">
+    interface Props {
+        message?: string
+        name?: string
+        isLastMemory: boolean
+    }
 
-## Key Architectural Patterns
+    let { message = $bindable(''), name = '', isLastMemory }: Props = $props()
 
-### Data Layer
+    let localState = $state(false)
+    let computed = $derived(message.length > 0)
 
-- Database abstraction with multiple storage backends:
-  - Tauri FS, LocalForage, Mobile, Node, OPFS
-- Save file format: `.bin` files with encryption support
-- Character cards: Import/export in various formats (.risum, .risup, .charx)
+    $effect(() => {
+        // reactive side effects
+    })
+</script>
 
-### Processing Pipeline
+<div class="flex items-center gap-2">
+    {#if computed}
+        <span>{message}</span>
+    {/if}
+</div>
+```
 
-1. Chat processing in `process/index.svelte.ts`
-2. Request handling with provider abstraction
-3. Memory systems for context management
-4. Lorebook integration for world info
+### Error Handling
 
-### Plugin System (API v3.0)
+```typescript
+import { alertError } from 'src/ts/alert'
 
-- Iframe-based sandboxing for security
-- SafeDocument/SafeElement wrappers for DOM access
-- Plugin storage (save-specific and device-specific)
-- Custom AI provider support
+// Use alertError() — never swallow errors
+try {
+    const result = await riskyOperation()
+} catch (error) {
+    alertError(error)  // Shows UI alert with stack trace
+    return false
+}
+
+// In chat pipeline: errors can be inlined as chat messages
+// when db.inlayErrorResponse is enabled
+```
+
+### i18n
+
+```typescript
+import { language } from 'src/lang'
+
+// Access translation keys as properties
+alertError(language.errors.toomuchtoken)
+const label = language.addCharacter
+
+// Language switching: merge over English base
+// Files: src/lang/en.ts (base), ko.ts, cn.ts, etc.
+```
+
+### Placeholder System
+
+```typescript
+// Common placeholders in prompts/messages
+{{char}}  → character name
+{{user}}  → user name
+{{getvar::key}}  → get variable
+{{setvar::key::value}}  → set variable
+```
+
+## Core Data Model
+
+```typescript
+// src/ts/storage/database.svelte.ts
+interface Database {
+    characters: character[]
+    apiType: string
+    openAIKey: string
+    mainPrompt: string
+    jailbreak: string
+    temperature: number
+    maxContext: number
+    maxResponse: number
+    botPresets: BotPreset[]
+    plugins: RisuPlugin[]
+    // ... 100+ properties
+}
+
+interface character {
+    chaId: string
+    name: string
+    type: 'normal' | 'group'
+    chats: Chat[]
+    lorebooks: loreBook[]
+    customscript: customscript[]
+    emotionImages: { [key: string]: string[] }
+    // ...
+}
+
+interface Chat {
+    message: Message[]
+    date: number
+    modules?: string[]
+}
+
+interface Message {
+    role: 'user' | 'char' | 'system'
+    data: string
+    time: number
+    saying?: string
+    generationInfo?: MessageGenerationInfo
+}
+```
+
+### Data Access
+
+```typescript
+import { DBState } from 'src/ts/stores.svelte'
+import { getDatabase, setDatabase } from 'src/ts/storage/database.svelte'
+
+// Read
+const db = getDatabase()     // or DBState.db
+const char = db.characters[selectedId]
+
+// Write — changes auto-persist through storage layer
+// setDatabase() validates with checkNullish() and sets defaults
+```
+
+## Chat Processing Pipeline
+
+```
+User Input
+  → sendChat() in process/index.svelte.ts
+    → Template formatting (process/templates/)
+    → Lorebook injection (process/lorebook.svelte.ts)
+    → Memory system (process/memory/)
+    → Token calculation
+    → API request (process/request/)
+    → Response streaming
+    → Post-processing (scriptings, triggers)
+  → Message displayed
+```
+
+### API Request Interface
+
+```typescript
+interface OpenAIChat {
+    role: 'system' | 'user' | 'assistant' | 'function'
+    content: string
+    memo?: string
+    multimodals?: MultiModal[]
+    thoughts?: string[]
+    cachePoint?: boolean
+}
+
+interface requestDataArgument {
+    formated: OpenAIChat[]
+    bias: { [key: number]: number }
+    currentChar?: character
+    temperature?: number
+    maxTokens?: number
+}
+```
+
+## Plugin System (API v3.0)
+
+- Sandboxed execution with AST-based safety checks (`acorn` parser)
+- **Forbidden**: `eval()`, `new Function()`, `sessionStorage`, global object access
+- **Sanitized**: `window`, `global`, `globalThis` → `safeGlobalThis`
+- Plugin metadata via comment directives: `//@name`, `//@api`, `//@display-name`
 - Hot reload support for development
+- Plugin storage: save-specific and device-specific scopes
 
-See `plugins.md` for comprehensive plugin development guide.
+## Storage Backends
 
-### UI Architecture
+| Platform | Backend |
+|----------|---------|
+| Tauri Desktop | File system (`AppData/database/database.bin`) |
+| Web | IndexedDB via localforage |
+| Node Server | File system with directory structure |
 
-- Component-based with Svelte 5
-- Responsive design with mobile/desktop variants
-- Theme system with custom color schemes
-- Multiple UI modes: Classic, WaifuLike, WaifuCut
-- Dynamic GUI switching based on viewport
-- No traditional router; uses conditional rendering in App.svelte
+- Save format: Binary (risuSave encoding) with optional encryption
+- Character cards: `.risum`, `.risup`, `.charx` formats
+
+## Testing
+
+```bash
+pnpm test             # Vitest runner
+pnpm check            # Type checking
+```
+
+- Framework: **Vitest** with **fast-check** for property-based tests
+- DOM simulation: **happy-dom**
+- Tests colocated with source: `**/*.test.ts`
+- Mocking with `vi.mock()`
+
+```typescript
+import { expect, test, vi } from 'vitest'
+import fc from 'fast-check'
+
+vi.mock(import('../../storage/database.svelte'), () => ({
+    appVer: '1234.5.67',
+    getCurrentCharacter: () => ({}),
+}))
+
+test('property test example', () => {
+    fc.assert(fc.property(fc.string(), (s) => {
+        expect(typeof s).toBe('string')
+    }))
+})
+```
+
+## Build Configuration
+
+- **vite.config.ts**: Svelte 5 + Tailwind CSS 4 + WASM support
+- **tsconfig.json**: `strict: false`, target ES2023, module ES2022, bundler resolution
+- **Path alias**: `src` → `/src`
+- Production: debug code stripped via `@rollup/plugin-strip`
+- Chunk size warning: 2000KB
 
 ## Supported AI Providers
 
-- OpenAI (GPT series)
-- Anthropic (Claude)
-- Google (Gemini)
-- DeepInfra
-- OpenRouter
-- AI Horde
-- Ollama
-- Ooba (Text Generation WebUI)
-- Custom providers via plugins
-
-## Internationalization
-
-Supported languages:
-- English (en)
-- Korean (ko)
-- Chinese Simplified (cn)
-- Chinese Traditional (zh-Hant)
-- Vietnamese (vi)
-- German (de)
-- Spanish (es)
-
-Language files are located in `/src/lang/`.
+OpenAI, Anthropic (Claude), Google (Gemini), DeepInfra, OpenRouter, AI Horde, Ollama, Ooba, NovelAI, DeepSeek, WebLLM, custom providers via plugins
 
 ## Deployment Targets
 
 - **Web**: Vite static site
-- **Desktop (Tauri)**: Windows (NSIS), macOS (DMG, APP), Linux (DEB, RPM, AppImage)
+- **Desktop**: Windows (NSIS), macOS (DMG), Linux (DEB/RPM/AppImage)
 - **Docker**: Container (port 6001)
 - **Self-hosted**: Node.js or Hono server
 
 ## Security
 
-- Plugin sandboxing with iframe isolation
+- Plugin sandboxing with iframe isolation + AST analysis
 - DOM sanitization with DOMPurify
-- Buffer encryption/decryption utilities
+- Buffer encryption/decryption for save files
 - CORS handling with proxy support
-- Tauri HTTP plugin for native fetch
+- Tauri HTTP plugin for native fetch (bypasses CORS)
 
-## Documentation
+## Key Guidelines for AI Assistants
 
-| File | Description |
-|------|-------------|
-| `README.md` | Main project documentation |
-| `plugins.md` | Plugin development guide |
-| `AGENTS.md` | AI assistant documentation |
-| `src/ts/plugins/migrationGuide.md` | Plugin API migration guide |
-| `server/hono/README.md` | Hono server documentation |
-| `server/node/readme.md` | Node server documentation |
-
-## Contribution Guidelines
-
-1. Follow the existing coding style and conventions
-2. Run `pnpm check` before submitting a pull request
-3. Ensure your code is well-tested
-4. Format code with Prettier before committing
+1. **Read before edit** — Always read the target file before modifying
+2. **Follow existing patterns** — Match the style of surrounding code
+3. **Use `src/` alias** for imports, not relative paths from deep nesting
+4. **Svelte 5 Runes** — Use `$state`, `$derived`, `$effect`, `$props()` for new code
+5. **Error handling** — Use `alertError()` from `src/ts/alert.ts`, never silent catches
+6. **i18n** — Use `language.xxx` keys for user-facing strings
+7. **Type checking** — Run `pnpm check` after changes
+8. **No console.log** in production code
+9. **Immutability** — Prefer creating new objects over mutation
+10. **Test colocated** — Place tests next to source as `*.test.ts`

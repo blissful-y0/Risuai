@@ -1,378 +1,9 @@
 //@api 3.0
 //@name 📚 리수북스 (RisuBooks)
-//@version 8.0.0
-
-// LZ-String compression (base64) - https://github.com/pieroxy/lz-string (MIT)
-let _lzInstance = null;
-function getLZString() {
-  if (_lzInstance) return _lzInstance;
-  _lzInstance = (function () {
-    const f = String.fromCharCode;
-    const keyStrBase64 =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-    const baseReverseDic = {};
-    function getBaseValue(a, c) {
-      if (!baseReverseDic[a]) {
-        baseReverseDic[a] = {};
-        for (let i = 0; i < a.length; i++) baseReverseDic[a][a.charAt(i)] = i;
-      }
-      return baseReverseDic[a][c];
-    }
-    function _compress(input, bpc, gci) {
-      if (input == null) return "";
-      let i,
-        v,
-        cd = {},
-        cdc = {},
-        cc = "",
-        cwc = "",
-        cw = "",
-        cei = 2,
-        cds = 3,
-        cnb = 2,
-        d = [],
-        dv = 0,
-        dp = 0;
-      for (let ii = 0; ii < input.length; ii++) {
-        cc = input.charAt(ii);
-        if (!Object.prototype.hasOwnProperty.call(cd, cc)) {
-          cd[cc] = cds++;
-          cdc[cc] = true;
-        }
-        cwc = cw + cc;
-        if (Object.prototype.hasOwnProperty.call(cd, cwc)) {
-          cw = cwc;
-        } else {
-          if (Object.prototype.hasOwnProperty.call(cdc, cw)) {
-            if (cw.charCodeAt(0) < 256) {
-              for (i = 0; i < cnb; i++) {
-                dv = dv << 1;
-                if (dp == bpc - 1) {
-                  dp = 0;
-                  d.push(gci(dv));
-                  dv = 0;
-                } else dp++;
-              }
-              v = cw.charCodeAt(0);
-              for (i = 0; i < 8; i++) {
-                dv = (dv << 1) | (v & 1);
-                if (dp == bpc - 1) {
-                  dp = 0;
-                  d.push(gci(dv));
-                  dv = 0;
-                } else dp++;
-                v = v >> 1;
-              }
-            } else {
-              v = 1;
-              for (i = 0; i < cnb; i++) {
-                dv = (dv << 1) | v;
-                if (dp == bpc - 1) {
-                  dp = 0;
-                  d.push(gci(dv));
-                  dv = 0;
-                } else dp++;
-                v = 0;
-              }
-              v = cw.charCodeAt(0);
-              for (i = 0; i < 16; i++) {
-                dv = (dv << 1) | (v & 1);
-                if (dp == bpc - 1) {
-                  dp = 0;
-                  d.push(gci(dv));
-                  dv = 0;
-                } else dp++;
-                v = v >> 1;
-              }
-            }
-            cei--;
-            if (cei == 0) {
-              cei = Math.pow(2, cnb);
-              cnb++;
-            }
-            delete cdc[cw];
-          } else {
-            v = cd[cw];
-            for (i = 0; i < cnb; i++) {
-              dv = (dv << 1) | (v & 1);
-              if (dp == bpc - 1) {
-                dp = 0;
-                d.push(gci(dv));
-                dv = 0;
-              } else dp++;
-              v = v >> 1;
-            }
-          }
-          cei--;
-          if (cei == 0) {
-            cei = Math.pow(2, cnb);
-            cnb++;
-          }
-          cd[cwc] = cds++;
-          cw = String(cc);
-        }
-      }
-      if (cw !== "") {
-        if (Object.prototype.hasOwnProperty.call(cdc, cw)) {
-          if (cw.charCodeAt(0) < 256) {
-            for (i = 0; i < cnb; i++) {
-              dv = dv << 1;
-              if (dp == bpc - 1) {
-                dp = 0;
-                d.push(gci(dv));
-                dv = 0;
-              } else dp++;
-            }
-            v = cw.charCodeAt(0);
-            for (i = 0; i < 8; i++) {
-              dv = (dv << 1) | (v & 1);
-              if (dp == bpc - 1) {
-                dp = 0;
-                d.push(gci(dv));
-                dv = 0;
-              } else dp++;
-              v = v >> 1;
-            }
-          } else {
-            v = 1;
-            for (i = 0; i < cnb; i++) {
-              dv = (dv << 1) | v;
-              if (dp == bpc - 1) {
-                dp = 0;
-                d.push(gci(dv));
-                dv = 0;
-              } else dp++;
-              v = 0;
-            }
-            v = cw.charCodeAt(0);
-            for (i = 0; i < 16; i++) {
-              dv = (dv << 1) | (v & 1);
-              if (dp == bpc - 1) {
-                dp = 0;
-                d.push(gci(dv));
-                dv = 0;
-              } else dp++;
-              v = v >> 1;
-            }
-          }
-          cei--;
-          if (cei == 0) {
-            cei = Math.pow(2, cnb);
-            cnb++;
-          }
-          delete cdc[cw];
-        } else {
-          v = cd[cw];
-          for (i = 0; i < cnb; i++) {
-            dv = (dv << 1) | (v & 1);
-            if (dp == bpc - 1) {
-              dp = 0;
-              d.push(gci(dv));
-              dv = 0;
-            } else dp++;
-            v = v >> 1;
-          }
-        }
-        cei--;
-        if (cei == 0) {
-          cei = Math.pow(2, cnb);
-          cnb++;
-        }
-      }
-      v = 2;
-      for (i = 0; i < cnb; i++) {
-        dv = (dv << 1) | (v & 1);
-        if (dp == bpc - 1) {
-          dp = 0;
-          d.push(gci(dv));
-          dv = 0;
-        } else dp++;
-        v = v >> 1;
-      }
-      while (true) {
-        dv = dv << 1;
-        if (dp == bpc - 1) {
-          d.push(gci(dv));
-          break;
-        } else dp++;
-      }
-      return d.join("");
-    }
-    function _decompress(length, rv, gnv) {
-      let dict = [],
-        next,
-        ei = 4,
-        ds = 4,
-        nb = 3,
-        entry = "",
-        res = [],
-        i,
-        w,
-        bits,
-        resb,
-        mp,
-        pw,
-        c,
-        data = { val: gnv(0), position: rv, index: 1 };
-      for (i = 0; i < 3; i++) dict[i] = i;
-      bits = 0;
-      mp = Math.pow(2, 2);
-      pw = 1;
-      while (pw != mp) {
-        resb = data.val & data.position;
-        data.position >>= 1;
-        if (data.position == 0) {
-          data.position = rv;
-          data.val = gnv(data.index++);
-        }
-        bits |= (resb > 0 ? 1 : 0) * pw;
-        pw <<= 1;
-      }
-      switch ((next = bits)) {
-        case 0:
-          bits = 0;
-          mp = Math.pow(2, 8);
-          pw = 1;
-          while (pw != mp) {
-            resb = data.val & data.position;
-            data.position >>= 1;
-            if (data.position == 0) {
-              data.position = rv;
-              data.val = gnv(data.index++);
-            }
-            bits |= (resb > 0 ? 1 : 0) * pw;
-            pw <<= 1;
-          }
-          c = f(bits);
-          break;
-        case 1:
-          bits = 0;
-          mp = Math.pow(2, 16);
-          pw = 1;
-          while (pw != mp) {
-            resb = data.val & data.position;
-            data.position >>= 1;
-            if (data.position == 0) {
-              data.position = rv;
-              data.val = gnv(data.index++);
-            }
-            bits |= (resb > 0 ? 1 : 0) * pw;
-            pw <<= 1;
-          }
-          c = f(bits);
-          break;
-        case 2:
-          return "";
-      }
-      dict[3] = c;
-      w = c;
-      res.push(c);
-      while (true) {
-        if (data.index > length) return "";
-        bits = 0;
-        mp = Math.pow(2, nb);
-        pw = 1;
-        while (pw != mp) {
-          resb = data.val & data.position;
-          data.position >>= 1;
-          if (data.position == 0) {
-            data.position = rv;
-            data.val = gnv(data.index++);
-          }
-          bits |= (resb > 0 ? 1 : 0) * pw;
-          pw <<= 1;
-        }
-        switch ((c = bits)) {
-          case 0:
-            bits = 0;
-            mp = Math.pow(2, 8);
-            pw = 1;
-            while (pw != mp) {
-              resb = data.val & data.position;
-              data.position >>= 1;
-              if (data.position == 0) {
-                data.position = rv;
-                data.val = gnv(data.index++);
-              }
-              bits |= (resb > 0 ? 1 : 0) * pw;
-              pw <<= 1;
-            }
-            dict[ds++] = f(bits);
-            c = ds - 1;
-            ei--;
-            break;
-          case 1:
-            bits = 0;
-            mp = Math.pow(2, 16);
-            pw = 1;
-            while (pw != mp) {
-              resb = data.val & data.position;
-              data.position >>= 1;
-              if (data.position == 0) {
-                data.position = rv;
-                data.val = gnv(data.index++);
-              }
-              bits |= (resb > 0 ? 1 : 0) * pw;
-              pw <<= 1;
-            }
-            dict[ds++] = f(bits);
-            c = ds - 1;
-            ei--;
-            break;
-          case 2:
-            return res.join("");
-        }
-        if (ei == 0) {
-          ei = Math.pow(2, nb);
-          nb++;
-        }
-        if (dict[c]) {
-          entry = dict[c];
-        } else {
-          if (c === ds) entry = w + w.charAt(0);
-          else return null;
-        }
-        res.push(entry);
-        dict[ds++] = w + entry.charAt(0);
-        ei--;
-        if (ei == 0) {
-          ei = Math.pow(2, nb);
-          nb++;
-        }
-        w = entry;
-      }
-    }
-    return {
-      compressToBase64: function (input) {
-        if (input == null) return "";
-        const r = _compress(input, 6, function (a) {
-          return keyStrBase64.charAt(a);
-        });
-        switch (r.length % 4) {
-          default:
-          case 0:
-            return r;
-          case 1:
-            return r + "===";
-          case 2:
-            return r + "==";
-          case 3:
-            return r + "=";
-        }
-      },
-      decompressFromBase64: function (input) {
-        if (input == null) return "";
-        if (input == "") return null;
-        return _decompress(input.length, 32, function (index) {
-          return getBaseValue(keyStrBase64, input.charAt(index));
-        });
-      },
-    };
-  })();
-  return _lzInstance;
-}
-
-const CACHE_STORAGE_PREFIX = "risu_books:";
+//@version 7.0.0
+//@arg theme string Reader theme
+//@arg font string Reader font
+//@arg bookmark string Bookmark visibility
 
 const READER_STYLE_ID = "nv-reader-style";
 const CUSTOM_FONT_STYLE_ID = "nv-reader-custom-font";
@@ -412,13 +43,11 @@ const FONTS = [
     family: '"Pretendard Variable", Pretendard, -apple-system, sans-serif',
   },
 ];
-
 const DEFAULT_SETTINGS = {
   theme: "light",
   font: "BookkMyungjo",
   bookmark: "on",
 };
-
 const CUSTOM_THEME_FIELDS = [
   { key: "bg", label: "배경", cssVar: "--nv-bg", fallback: "#2a2a2a" },
   { key: "text", label: "본문", cssVar: "--nv-text", fallback: "#d4d4d4" },
@@ -652,9 +281,7 @@ async function loadAssetDataUrl(api, path) {
       );
     }
   } catch (error) {
-    await api.log(
-      `RisuBooks image load failed (${assetKey}): ${error.message}`,
-    );
+    await api.log(`RisuBooks image load failed (${assetKey}): ${error.message}`);
   }
 
   return "";
@@ -1038,14 +665,6 @@ function ensureReaderStyle() {
         .nv-processed-message .x-risu-image-container,
         .nv-processed-message [class*="risu-image"] {
             display: none;
-        }
-
-        .nv-translated-message {
-            margin: 0 0 1.1em 0;
-            break-inside: avoid-column;
-            color: var(--nv-text);
-            border-left: 2px solid var(--nv-text-muted);
-            padding-left: 0.8em;
         }
 
         .novel-content mark[risu-mark="quote1"],
@@ -1469,57 +1088,6 @@ function ensureReaderStyle() {
         .nv-library-clear:hover {
             background: var(--nv-controls-hover);
             color: var(--nv-text);
-        }
-
-        /* ── 캐시 토글 ── */
-        .nv-cache-toggle-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--nv-rule);
-        }
-        .nv-cache-toggle-info {
-            font-size: 13px;
-            color: var(--nv-text-muted);
-            font-family: var(--nv-ui-font);
-        }
-        .nv-cache-toggle-label {
-            color: var(--nv-text);
-            font-weight: 500;
-        }
-        .nv-cache-toggle-desc {
-            font-size: 11px;
-            margin-top: 2px;
-        }
-        .nv-cache-toggle-switch {
-            width: 40px;
-            height: 22px;
-            border-radius: 11px;
-            background: var(--nv-rule);
-            border: none;
-            position: relative;
-            cursor: pointer;
-            transition: background 0.2s;
-            flex-shrink: 0;
-        }
-        .nv-cache-toggle-switch.on {
-            background: var(--nv-text-muted);
-        }
-        .nv-cache-toggle-switch::after {
-            content: "";
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--nv-bg);
-            transition: transform 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-        .nv-cache-toggle-switch.on::after {
-            transform: translateX(18px);
         }
 
         /* ── 현재 세션 hero ── */
@@ -2925,6 +2493,7 @@ function getDisplayName(context) {
   return context.character?.name || "Reader";
 }
 
+
 async function getArgumentOrDefault(api, key) {
   try {
     const value = await api.getArgument(key);
@@ -2945,48 +2514,10 @@ async function setArgumentSafe(api, key, value) {
   }
 }
 
-// 캐시 키인지 판별 (readerCacheIndex 또는 readerCache:*)
-function isCacheKey(key) {
-  return key === CACHE_INDEX_KEY || key.startsWith(CACHE_ENTRY_PREFIX);
-}
-
-// 캐시 키는 "cache:" 프리픽스 붙여서 설정 데이터와 분리
-function toStorageKey(key) {
-  return isCacheKey(key) ? `${CACHE_STORAGE_PREFIX}${key}` : key;
-}
-
-// 캐시 저장 시 renderedHtml을 LZ-String으로 압축
-function compressCacheValue(value) {
-  if (!value) return value;
-  const result = { ...value };
-  if (typeof value.renderedHtml === "string" && value.renderedHtml.length > 0) {
-    result.__compressedHtml = getLZString().compressToBase64(
-      value.renderedHtml,
-    );
-    delete result.renderedHtml;
-    result.__compressed = true;
-  }
-  return result;
-}
-
-// 캐시 읽기 시 압축 해제 (비압축 데이터도 호환)
-function decompressCacheValue(value) {
-  if (!value || !value.__compressed) return value;
-  const result = { ...value };
-  if (typeof value.__compressedHtml === "string") {
-    result.renderedHtml =
-      getLZString().decompressFromBase64(value.__compressedHtml) || "";
-    delete result.__compressedHtml;
-  }
-  delete result.__compressed;
-  return result;
-}
-
 async function getPluginStorageItem(api, key, fallback) {
   try {
-    const value = await api.pluginStorage.getItem(toStorageKey(key));
-    if (value == null) return fallback;
-    return isCacheKey(key) ? (decompressCacheValue(value) ?? fallback) : value;
+    const value = await api.pluginStorage.getItem(key);
+    return value ?? fallback;
   } catch (error) {
     await api.log(
       `RisuBooks pluginStorage read failed (${key}): ${error.message}`,
@@ -2997,8 +2528,7 @@ async function getPluginStorageItem(api, key, fallback) {
 
 async function setPluginStorageItem(api, key, value) {
   try {
-    const stored = isCacheKey(key) ? compressCacheValue(value) : value;
-    await api.pluginStorage.setItem(toStorageKey(key), stored);
+    await api.pluginStorage.setItem(key, value);
   } catch (error) {
     await api.log(
       `RisuBooks pluginStorage write failed (${key}): ${error.message}`,
@@ -3008,7 +2538,7 @@ async function setPluginStorageItem(api, key, value) {
 
 async function removePluginStorageItem(api, key) {
   try {
-    await api.pluginStorage.removeItem(toStorageKey(key));
+    await api.pluginStorage.removeItem(key);
   } catch (error) {
     await api.log(
       `RisuBooks pluginStorage remove failed (${key}): ${error.message}`,
@@ -3018,16 +2548,12 @@ async function removePluginStorageItem(api, key) {
 
 async function getPluginStorageKeys(api) {
   try {
-    const rawKeys = await api.pluginStorage.keys();
-    // "cache:readerCache:5:2" → "readerCache:5:2" 로 복원해서 반환
-    const keys = (Array.isArray(rawKeys) ? rawKeys : []).map((key) =>
-      key.startsWith(CACHE_STORAGE_PREFIX)
-        ? key.slice(CACHE_STORAGE_PREFIX.length)
-        : key,
-    );
-    return keys;
+    const keys = await api.pluginStorage.keys();
+    return Array.isArray(keys) ? keys : [];
   } catch (error) {
-    await api.log(`RisuBooks pluginStorage keys failed: ${error.message}`);
+    await api.log(
+      `RisuBooks pluginStorage keys failed: ${error.message}`,
+    );
     return [];
   }
 }
@@ -3109,11 +2635,10 @@ function normalizeReaderBookmarks(bookmarks) {
             : `bookmark-${Date.now()}`,
         messageIndex: clampParagraphIndex(bookmark.messageIndex),
         paragraphIndex: clampParagraphIndex(bookmark.paragraphIndex),
-        preview: typeof bookmark.preview === "string" ? bookmark.preview : "",
+        preview:
+          typeof bookmark.preview === "string" ? bookmark.preview : "",
         createdAt:
-          typeof bookmark.createdAt === "number"
-            ? bookmark.createdAt
-            : Date.now(),
+          typeof bookmark.createdAt === "number" ? bookmark.createdAt : Date.now(),
       };
     })
     .filter(Boolean);
@@ -3132,8 +2657,7 @@ function normalizeReaderLocation(location) {
     messageIndex: clampParagraphIndex(location.messageIndex),
     paragraphIndex: clampParagraphIndex(location.paragraphIndex),
     preview: typeof location.preview === "string" ? location.preview : "",
-    updatedAt:
-      typeof location.updatedAt === "number" ? location.updatedAt : null,
+    updatedAt: typeof location.updatedAt === "number" ? location.updatedAt : null,
   };
 }
 
@@ -3162,9 +2686,7 @@ function formatLocationLabel(location) {
 }
 
 function truncateBookmarkPreview(text) {
-  const normalized = String(text || "")
-    .replace(/\s+/g, " ")
-    .trim();
+  const normalized = String(text || "").replace(/\s+/g, " ").trim();
   if (!normalized) {
     return "미리보기를 불러올 수 없습니다.";
   }
@@ -3183,9 +2705,7 @@ function formatCacheTimestamp(value) {
 }
 
 async function getReaderCacheIndex(api) {
-  const stored = await getPluginStorageItem(api, CACHE_INDEX_KEY, {
-    entries: [],
-  });
+  const stored = await getPluginStorageItem(api, CACHE_INDEX_KEY, { entries: [] });
   const entries = Array.isArray(stored?.entries) ? stored.entries : [];
   return { entries };
 }
@@ -3208,9 +2728,7 @@ async function saveReaderEditionCache(api, context, cacheEntry) {
   };
   await setPluginStorageItem(api, cacheKey, normalizedEntry);
   const index = await getReaderCacheIndex(api);
-  const nextEntries = index.entries.filter(
-    (entry) => entry.cacheKey !== cacheKey,
-  );
+  const nextEntries = index.entries.filter((entry) => entry.cacheKey !== cacheKey);
   nextEntries.unshift({
     cacheKey,
     characterIndex: context.characterIndex,
@@ -3237,9 +2755,7 @@ async function deleteReaderEditionCache(api, cacheKey) {
 
 async function clearReaderEditionCaches(api) {
   const keys = await getPluginStorageKeys(api);
-  const cacheKeys = keys.filter(
-    (key) => key === CACHE_INDEX_KEY || key.startsWith(CACHE_ENTRY_PREFIX),
-  );
+  const cacheKeys = keys.filter((key) => key === CACHE_INDEX_KEY || key.startsWith(CACHE_ENTRY_PREFIX));
   for (const key of cacheKeys) {
     await removePluginStorageItem(api, key);
   }
@@ -3249,16 +2765,7 @@ async function persistCurrentCacheState(api) {
   if (!readerState.context || !readerState.currentCacheEntry) {
     return;
   }
-  const cacheEnabled =
-    (await getPluginStorageItem(api, "cacheEnabled", false)) !== false;
-  if (!cacheEnabled) {
-    return;
-  }
-  await saveReaderEditionCache(
-    api,
-    readerState.context,
-    readerState.currentCacheEntry,
-  );
+  await saveReaderEditionCache(api, readerState.context, readerState.currentCacheEntry);
   readerState.lastPersistedCacheSignature = serializeReaderCacheSignature({
     messageCount: readerState.currentCacheEntry.messageCount,
     lastMessageHash: readerState.currentCacheEntry.lastMessageHash,
@@ -3348,8 +2855,10 @@ async function loadReaderSettings(api) {
     typeof customFontCss === "string" ? customFontCss : "";
   readerState.lineSpacing =
     typeof lineSpacing === "number" ? lineSpacing : 1.85;
-  readerState.fontSize = typeof fontSize === "number" ? fontSize : 16;
-  readerState.pagePadding = typeof pagePadding === "number" ? pagePadding : 64;
+  readerState.fontSize =
+    typeof fontSize === "number" ? fontSize : 16;
+  readerState.pagePadding =
+    typeof pagePadding === "number" ? pagePadding : 64;
   const hidePatterns = await getPluginStorageItem(api, "hidePatterns", []);
   readerState.hidePatterns = Array.isArray(hidePatterns) ? hidePatterns : [];
 }
@@ -3384,10 +2893,7 @@ function stripReaderMetaBlocks(value, isHtml = false) {
     .replace(/&lt;img\s*=\s*["'][^"']*["']\s*&gt;/gi, "")
     .replace(/&lt;img\s+src\s*=\s*["'][^"']*["']\s*\/?&gt;/gi, "")
     .replace(/\[💡[^\]]*\]/g, "")
-    .replace(
-      /☆\s*\[(?:Date|Time|Location|Name|Level|Stat|EXP|HP|MP|SP|Strength|Constitution|Agility|Intelligence|Sense|Class|Weapons|Accessories|Armor|Items|Currencies|Skills|Quests)[^\]]*(?:\|[^\]]*)*\]/gi,
-      "",
-    );
+    .replace(/☆\s*\[(?:Date|Time|Location|Name|Level|Stat|EXP|HP|MP|SP|Strength|Constitution|Agility|Intelligence|Sense|Class|Weapons|Accessories|Armor|Items|Currencies|Skills|Quests)[^\]]*(?:\|[^\]]*)*\]/gi, "");
 
   if (Array.isArray(readerState.hidePatterns)) {
     for (const pattern of readerState.hidePatterns) {
@@ -3458,7 +2964,11 @@ function renderMarkdownBlock(block, role, messageIndex, paragraphIndex) {
     return `<hr class="nv-md-rule"${locationAttrs}>`;
   }
 
-  if (trimmed.split("\n").every((line) => line.trim().startsWith(">"))) {
+  if (
+    trimmed
+      .split("\n")
+      .every((line) => line.trim().startsWith(">"))
+  ) {
     const quoteContent = trimmed
       .split("\n")
       .map((line) => line.trim().replace(/^>\s?/, ""))
@@ -3468,7 +2978,11 @@ function renderMarkdownBlock(block, role, messageIndex, paragraphIndex) {
     return `<blockquote class="nv-md-quote"${locationAttrs}>${quoteContent}</blockquote>`;
   }
 
-  if (trimmed.split("\n").every((line) => line.trim().startsWith("- "))) {
+  if (
+    trimmed
+      .split("\n")
+      .every((line) => line.trim().startsWith("- "))
+  ) {
     const items = trimmed
       .split("\n")
       .map((line) => line.trim().replace(/^- /, ""))
@@ -3505,9 +3019,7 @@ function parseHiddenStoryBlocks(value) {
 
     const titleMatch = innerBlock.match(/\[hsTitle:\s*([^\]]+)\]/i);
     const sceneMatch = innerBlock.match(/\[hsScene:\s*([^\]]+)\]/i);
-    const narrativeMatch = innerBlock.match(
-      /<hsNarrative>([\s\S]*?)<\/hsNarrative>/i,
-    );
+    const narrativeMatch = innerBlock.match(/<hsNarrative>([\s\S]*?)<\/hsNarrative>/i);
     const narrative = narrativeMatch
       ? narrativeMatch[1].trim()
       : innerBlock
@@ -3535,12 +3047,7 @@ function parseHiddenStoryBlocks(value) {
   return blocks;
 }
 
-function renderHiddenStoryBlock(
-  block,
-  role,
-  messageIndex,
-  paragraphIndexStart,
-) {
+function renderHiddenStoryBlock(block, role, messageIndex, paragraphIndexStart) {
   const summaryAttrs = ` data-reader-anchor="true" data-message-index="${messageIndex}" data-paragraph-index="${paragraphIndexStart}"`;
   const narrativeBlocks = String(block.narrative || "")
     .split(/\n{2,}/)
@@ -3564,191 +3071,7 @@ function renderHiddenStoryBlock(
   };
 }
 
-// ============================================================
-// 번역 보기 기능
-// ============================================================
-
-// LLM 사고과정 + 메타블록 제거 (캐시 검색 키용)
-function stripThinkingBlocks(text) {
-  if (!text) return text;
-  return text
-    .replace(/<Thoughts>[\s\S]*?<\/Thoughts>/gi, "")
-    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, "")
-    .replace(/<details>[\s\S]*?<\/details>/gi, "")
-    .trim();
-}
-
-// 번역 결과에서 LLM 노이즈 + 메타태그 제거
-function stripTranslationNoise(text) {
-  if (!text) return text;
-  let cleaned = text;
-  // LLM 사고과정 블록
-  cleaned = cleaned.replace(/<Thoughts>[\s\S]*?<\/Thoughts>/gi, "");
-  cleaned = cleaned.replace(/<thinking>[\s\S]*?<\/thinking>/gi, "");
-  // 접힌 블록 (생각의 사슬, A/B 등)
-  cleaned = cleaned.replace(/<details[\s\S]*?<\/details>/gi, "");
-  cleaned = cleaned.replace(/<\/?summary>/gi, "");
-  // HTML 주석 (<!---->)
-  cleaned = cleaned.replace(/<!--[\s\S]*?-->/g, "");
-  // 로어북 데이터
-  cleaned = cleaned.replace(/\[LBDATA START][\s\S]*?\[LBDATA END]\n*/gi, "");
-  // 시스템 메시지
-  cleaned = cleaned.replace(/System Message:\s*\[.*?\].*$/gm, "");
-  // 이미지 태그
-  cleaned = cleaned.replace(/<img\s[^>]*\/?>/gi, "");
-  // 팁/상태 블록
-  cleaned = cleaned.replace(/\[💡[^\]]*\]/g, "");
-  // 일러스트 블록
-  cleaned = cleaned.replace(/<lb-xnai[\s\S]*?<\/lb-xnai>/gi, "");
-  // 도구 호출 블록
-  cleaned = cleaned.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, "");
-  // 인레이 데이터
-  cleaned = cleaned.replace(/{{(inlay|inlayed|inlayeddata)::.+?}}/gi, "");
-  // Translation Process 프리앰블
-  cleaned = cleaned.replace(/^\s*\*\*Translation Process[\s\S]*?\*\*\s*/i, "");
-  return cleaned.trim();
-}
-
-// 단일 메시지에 대해 번역 캐시 조회 (searchTranslationCache 사용)
-async function findTranslationForMessage(api, message) {
-  if (!api || typeof api.searchTranslationCache !== "function") return null;
-
-  const raw = message?.data || "";
-  const cleaned = stripThinkingBlocks(raw);
-  if (!cleaned) return null;
-
-  const searchKey = cleaned.slice(0, 80);
-  try {
-    const results = await api.searchTranslationCache(searchKey);
-    if (Array.isArray(results) && results.length > 0) {
-      return stripTranslationNoise(results[0].value);
-    }
-  } catch (error) {
-    return null;
-  }
-  return null;
-}
-
-// 번역 보기 상태
-let showingTranslation = false;
-let translationLoading = false;
-
-// 버튼 라벨 업데이트
-function updateTranslationLabel() {
-  const label = document.querySelector('[data-role="page-translation-label"]');
-  if (!label) return;
-  if (translationLoading) {
-    label.textContent = "번역 불러오는 중...";
-    return;
-  }
-  label.textContent = showingTranslation ? "원문 보기" : "번역 보기";
-}
-
-// 콘텐츠 교체 + 위치 유지
-function swapReaderContent(contentEl, html) {
-  const prevRatio =
-    readerState.totalPages > 1
-      ? readerState.currentPage / (readerState.totalPages - 1)
-      : 0;
-
-  contentEl.innerHTML = html;
-  setupColumns(contentEl);
-  updatePageInfo(contentEl);
-
-  const newPage = Math.round(prevRatio * (readerState.totalPages - 1));
-  readerState.currentPage = Math.max(
-    0,
-    Math.min(newPage, readerState.totalPages - 1),
-  );
-  scrollToPage(contentEl, "auto");
-
-  updateTranslationLabel();
-  updateIndicator();
-  updateProgressBar();
-}
-
-// 번역본 생성 (번역 캐시 조회 → 렌더링)
-async function buildTranslatedHtml(api, context) {
-  if (!api || typeof api.searchTranslationCache !== "function") return null;
-
-  const messages = context.messages || [];
-  const lookups = messages.map((msg, i) => {
-    if (!msg || !msg.data || msg.disabled === true || msg.isComment) {
-      return Promise.resolve(null);
-    }
-    return findTranslationForMessage(api, msg).then((t) =>
-      t ? { i, t } : null,
-    );
-  });
-  const results = await Promise.all(lookups);
-  const translationMap = {};
-  let hitCount = 0;
-  for (const result of results) {
-    if (result) {
-      translationMap[result.i] = result.t;
-      hitCount++;
-    }
-  }
-  console.log(
-    `RisuBooks: translation cache ${hitCount}/${messages.length} hit`,
-  );
-  if (hitCount === 0) return null;
-  return renderMessageContent(context, translationMap);
-}
-
-// 번역 보기 토글
-async function toggleTranslationView(api) {
-  const context = readerState.context;
-  if (!context) return;
-  const contentEl = document.querySelector(".novel-content");
-  if (!contentEl) return;
-
-  // 번역 보기 → 원문 복원 (항상 즉시)
-  if (showingTranslation) {
-    showingTranslation = false;
-    swapReaderContent(contentEl, context.renderedHtml);
-    return;
-  }
-
-  // 원문 → 번역 보기
-  // 이미 캐싱된 translatedHtml이 있으면 즉시 전환
-  if (context.translatedHtml) {
-    showingTranslation = true;
-    swapReaderContent(contentEl, context.translatedHtml);
-    return;
-  }
-
-  // 없으면 새로 조회
-  translationLoading = true;
-  updateTranslationLabel();
-
-  try {
-    const translatedHtml = await buildTranslatedHtml(api, context);
-    if (!translatedHtml) {
-      translationLoading = false;
-      updateTranslationLabel();
-      return;
-    }
-    // 세션 내 캐싱
-    context.translatedHtml = translatedHtml;
-    showingTranslation = true;
-    swapReaderContent(contentEl, translatedHtml);
-  } catch (error) {
-    console.log("RisuBooks: translation build failed:", error.message);
-  } finally {
-    translationLoading = false;
-    updateTranslationLabel();
-  }
-}
-
-// ============================================================
-
-// translationMap: { messageIndex: "번역 텍스트" } — null이면 원문 모드
-function renderMessageSlice(
-  context,
-  startMessageIndex = 0,
-  translationMap = null,
-) {
+function renderMessageSlice(context, startMessageIndex = 0) {
   const messages = context.messages
     .map((message, messageIndex) => ({ message, messageIndex }))
     .filter(({ messageIndex }) => messageIndex >= startMessageIndex)
@@ -3770,21 +3093,6 @@ function renderMessageSlice(
 
   return messages
     .map(({ message, messageIndex }) => {
-      // 번역 맵에 이 메시지의 번역이 있으면 번역본으로 렌더링
-      if (translationMap && translationMap[messageIndex] != null) {
-        const translated = translationMap[messageIndex];
-        const paragraphs = translated
-          .split(/\n{2,}/)
-          .map((p) => p.trim())
-          .filter(Boolean)
-          .map((p, pi) => {
-            const html = renderMarkdownBlock(p, message.role, messageIndex, pi);
-            return html;
-          })
-          .join("");
-        return `<section class="nv-reader-message nv-translated" data-message-block-index="${messageIndex}" data-role="${escapeHtml(message.role || "")}">${paragraphs}</section>`;
-      }
-
       const processedHtml = stripReaderMetaBlocks(message.processedHtml, true);
       const readableHtml = stripIllustrationBlocks(processedHtml, true);
       if (shouldUseProcessedHtml(readableHtml)) {
@@ -3839,8 +3147,8 @@ function renderMessageSlice(
     .join("");
 }
 
-function renderMessageContent(context, translationMap = null) {
-  const html = renderMessageSlice(context, 0, translationMap);
+function renderMessageContent(context) {
+  const html = renderMessageSlice(context, 0);
   if (html.length > 0) {
     return html;
   }
@@ -3865,10 +3173,7 @@ function findFirstChangedMessageIndex(previousMessages, nextMessages) {
   const next = Array.isArray(nextMessages) ? nextMessages : [];
   const sharedLength = Math.min(prev.length, next.length);
   for (let index = 0; index < sharedLength; index += 1) {
-    if (
-      getMessageComparableKey(prev[index]) !==
-      getMessageComparableKey(next[index])
-    ) {
+    if (getMessageComparableKey(prev[index]) !== getMessageComparableKey(next[index])) {
       return index;
     }
   }
@@ -3907,9 +3212,7 @@ function getReaderAnchors(contentEl = getContentElement()) {
   if (_cachedAnchorsParent === contentEl && _cachedAnchors) {
     return _cachedAnchors;
   }
-  _cachedAnchors = Array.from(
-    contentEl.querySelectorAll('[data-reader-anchor="true"]'),
-  );
+  _cachedAnchors = Array.from(contentEl.querySelectorAll('[data-reader-anchor="true"]'));
   _cachedAnchorsParent = contentEl;
   return _cachedAnchors;
 }
@@ -3941,7 +3244,8 @@ function getNavIcon(direction) {
       '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"></path></svg>',
     hamburger:
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>',
-    more: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg>',
+    more:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg>',
     first:
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>',
     prev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>',
@@ -3959,23 +3263,21 @@ function isMobile() {
   return window.innerWidth <= 1024;
 }
 
-function getContentWidth(contentEl) {
-  return contentEl.getBoundingClientRect().width;
-}
-
 function setupColumns(contentEl) {
   if (!contentEl) {
     return;
   }
 
-  const width = Math.floor(getContentWidth(contentEl));
   if (isMobile()) {
     contentEl.style.columnCount = "1";
-    contentEl.style.columnWidth = `${width}px`;
+    contentEl.style.columnWidth = `${Math.floor(contentEl.clientWidth)}px`;
     contentEl.style.columnGap = "0px";
   } else {
     const gap = 64;
-    const colWidth = Math.max(260, Math.floor((width - gap) / 2));
+    const colWidth = Math.max(
+      260,
+      Math.floor((contentEl.clientWidth - gap) / 2),
+    );
     contentEl.style.columnCount = "auto";
     contentEl.style.columnWidth = `${colWidth}px`;
     contentEl.style.columnGap = `${gap}px`;
@@ -3986,7 +3288,7 @@ function getPageWidth(contentEl) {
   const gap = Number.parseFloat(
     window.getComputedStyle(contentEl).columnGap || "60",
   );
-  return Math.max(1, Math.floor(getContentWidth(contentEl) + gap));
+  return Math.max(1, Math.floor(contentEl.clientWidth + gap));
 }
 
 function getPendingPage() {
@@ -4059,7 +3361,10 @@ function resolveCurrentPageFromScroll(
   const pageWidth = getPageWidth(contentEl);
   const page = Math.max(
     0,
-    Math.min(totalPages - 1, Math.round(contentEl.scrollLeft / pageWidth)),
+    Math.min(
+      totalPages - 1,
+      Math.round(contentEl.scrollLeft / pageWidth),
+    ),
   );
 
   if (navigationLockPage === null || navigationLockPage === undefined) {
@@ -4069,10 +3374,7 @@ function resolveCurrentPageFromScroll(
     };
   }
 
-  const maxLeft = Math.max(
-    0,
-    contentEl.scrollWidth - getContentWidth(contentEl),
-  );
+  const maxLeft = Math.max(0, contentEl.scrollWidth - contentEl.clientWidth);
   const targetLeft = Math.max(
     0,
     Math.min(navigationLockPage * pageWidth, maxLeft),
@@ -4098,13 +3400,11 @@ function scrollToPage(contentEl, behavior = "smooth") {
   }
 
   const pageWidth = getPageWidth(contentEl);
-  const left = Math.round(
-    Math.max(
-      0,
-      Math.min(
-        readerState.currentPage * pageWidth,
-        contentEl.scrollWidth - getContentWidth(contentEl),
-      ),
+  const left = Math.max(
+    0,
+    Math.min(
+      readerState.currentPage * pageWidth,
+      contentEl.scrollWidth - contentEl.clientWidth,
     ),
   );
   if (behavior === "smooth") {
@@ -4114,8 +3414,6 @@ function scrollToPage(contentEl, behavior = "smooth") {
     }
     readerState.navigationLockTimer = setTimeout(() => {
       clearNavigationPageLock();
-      // smooth 스크롤 완료 후 정확한 위치에 안착
-      contentEl.scrollTo({ left, behavior: "auto" });
     }, 700);
   } else {
     clearNavigationPageLock();
@@ -4142,7 +3440,7 @@ function getCurrentReaderLocation(contentEl = getContentElement()) {
   const pageWidth = getPageWidth(contentEl);
   const currentPage = readerState.currentPage;
   const pageLeft = currentPage * pageWidth;
-  const pageRight = pageLeft + getContentWidth(contentEl);
+  const pageRight = pageLeft + contentEl.clientWidth;
 
   let bestAnchor = anchors[0];
   let bestDist = Number.POSITIVE_INFINITY;
@@ -4917,10 +4215,7 @@ async function ensureHostMessagesRendered(api, rootDoc, expectedCount) {
       continue;
     }
 
-    await oldestRendered.messageEl.scrollIntoView({
-      behavior: "instant",
-      block: "start",
-    });
+    await oldestRendered.messageEl.scrollIntoView({ behavior: "instant", block: "start" });
     await sleep(90);
 
     if (oldestRendered.chatIndex === previousOldestIndex) {
@@ -4959,10 +4254,7 @@ async function loadProcessedMessageHtml(api, messages, startIndex = 0) {
       await ensureHostMessagesRendered(api, rootDoc, messages.length);
     }
 
-    const normalizedStart = Math.max(
-      0,
-      Math.min(startIndex, messages.length - 1),
-    );
+    const normalizedStart = Math.max(0, Math.min(startIndex, messages.length - 1));
     const processedMessageHtml = [];
     for (let index = 0; index < messages.length; index += 1) {
       if (index < normalizedStart) {
@@ -5009,11 +4301,7 @@ function patchReaderTailMessages(contentEl, context, startMessageIndex) {
 }
 
 function renderReaderBody(context, options = {}) {
-  const {
-    resetPage = false,
-    followTail = false,
-    tailStartMessageIndex = null,
-  } = options;
+  const { resetPage = false, followTail = false, tailStartMessageIndex = null } = options;
   const contentEl = getContentElement();
   if (!contentEl) {
     return "";
@@ -5031,8 +4319,7 @@ function renderReaderBody(context, options = {}) {
   if (!patchedTail) {
     invalidateAnchorCache();
     contentEl.innerHTML =
-      typeof context.renderedHtml === "string" &&
-      context.renderedHtml.length > 0
+      typeof context.renderedHtml === "string" && context.renderedHtml.length > 0
         ? context.renderedHtml
         : renderMessageContent(context);
   }
@@ -5087,6 +4374,7 @@ function renderLoadingState(label) {
 function closeModalById(id) {
   document.getElementById(id)?.classList.remove("open");
 }
+
 
 function getCurrentThemeVars() {
   return readerState.theme === "custom"
@@ -5192,7 +4480,10 @@ async function findReplyComposerRow(rootDoc) {
     const candidateTextarea = await candidate.querySelector(".text-input-area");
     const sendButton = await candidate.querySelector(".button-icon-send");
     const candidateButtons = await candidate.querySelectorAll("button");
-    if (candidateTextarea && (sendButton || candidateButtons.length >= 2)) {
+    if (
+      candidateTextarea &&
+      (sendButton || candidateButtons.length >= 2)
+    ) {
       return candidate;
     }
     if (candidateButtons.length > 0) {
@@ -5247,10 +4538,7 @@ function shouldContinueStreamingSync(isStreaming) {
     return true;
   }
   if (readerState.replyAwaitingResponse) {
-    if (
-      Date.now() - readerState.replyAwaitingResponseSince <
-      REPLY_MODE_MAX_WAIT_MS
-    ) {
+    if (Date.now() - readerState.replyAwaitingResponseSince < REPLY_MODE_MAX_WAIT_MS) {
       return true;
     }
     readerState.replyAwaitingResponse = false;
@@ -5286,9 +4574,7 @@ function scheduleStreamingSync(api, delay = 180) {
   readerState.streamingPollTimer = setTimeout(() => {
     readerState.streamingPollTimer = null;
     syncStreamingReader(api).catch((error) => {
-      api
-        .log(`RisuBooks streaming sync failed: ${error.message}`)
-        .catch(() => {});
+      api.log(`RisuBooks streaming sync failed: ${error.message}`).catch(() => {});
     });
   }, delay);
 }
@@ -5335,9 +4621,7 @@ async function syncStreamingReader(api) {
       : -1;
 
     if (signatureChanged) {
-      const baseProcessedMessageHtml = Array.isArray(
-        baseContext.processedMessageHtml,
-      )
+      const baseProcessedMessageHtml = Array.isArray(baseContext.processedMessageHtml)
         ? baseContext.processedMessageHtml
         : [];
       const processedMessageHtmlTail = await loadProcessedMessageHtml(
@@ -5363,13 +4647,9 @@ async function syncStreamingReader(api) {
       const latestRole = nextMessages[nextMessages.length - 1]?.role;
       const messageCountIncreased = nextMessages.length > previousMessageCount;
       const userMessageAdded =
-        readerState.replyModeEnabled &&
-        messageCountIncreased &&
-        latestRole === "user";
+        readerState.replyModeEnabled && messageCountIncreased && latestRole === "user";
       const charMessageAdded =
-        readerState.replyModeEnabled &&
-        messageCountIncreased &&
-        latestRole === "char";
+        readerState.replyModeEnabled && messageCountIncreased && latestRole === "char";
 
       if (userMessageAdded) {
         readerState.replyAwaitingResponse = true;
@@ -5397,8 +4677,7 @@ async function syncStreamingReader(api) {
 
       if (readerState.currentCacheEntry) {
         readerState.currentCacheEntry.messageCount = nextSignature.messageCount;
-        readerState.currentCacheEntry.lastMessageHash =
-          nextSignature.lastMessageHash;
+        readerState.currentCacheEntry.lastMessageHash = nextSignature.lastMessageHash;
         readerState.currentCacheEntry.paragraphCount =
           countRenderedParagraphs(renderedHtml);
         readerState.currentCacheEntry.renderedHtml = renderedHtml;
@@ -5503,11 +4782,7 @@ async function enableReplyMode(api) {
         watchFromComposer();
       }
     });
-    bridgeListenerIds.push({
-      element: textInput,
-      type: "keydown",
-      id: keydownId,
-    });
+    bridgeListenerIds.push({ element: textInput, type: "keydown", id: keydownId });
   }
   const clickId = await composerRow.addEventListener("click", () => {
     watchFromComposer();
@@ -5531,9 +4806,7 @@ async function enableReplyMode(api) {
   readerState.replyAwaitingResponseSince = 0;
   syncReplyModeUi();
   if (readerState.context) {
-    const renderedHtml = renderReaderBody(readerState.context, {
-      followTail: true,
-    });
+    const renderedHtml = renderReaderBody(readerState.context, { followTail: true });
     readerState.context.renderedHtml = renderedHtml;
   }
   await syncReplyComposerOverlayVisibility();
@@ -5571,8 +4844,7 @@ function buildCurrentSessionCacheSummary() {
     updatedAt: entry?.updatedAt || null,
     messageCount: signature?.messageCount || context.messages?.length || 0,
     paragraphCount:
-      entry?.paragraphCount ||
-      countRenderedParagraphs(context.renderedHtml || ""),
+      entry?.paragraphCount || countRenderedParagraphs(context.renderedHtml || ""),
     cacheKey:
       readerState.currentCacheKey ||
       getReaderCacheKey(context.characterIndex, context.chatIndex),
@@ -5764,9 +5036,7 @@ async function ensureBookmarkPanel(api) {
         syncReplyComposerOverlayVisibility().catch(() => {});
       });
     panel.addEventListener("click", async (event) => {
-      const saveButton = event.target.closest(
-        '[data-action="save-current-bookmark"]',
-      );
+      const saveButton = event.target.closest('[data-action="save-current-bookmark"]');
       if (saveButton) {
         await saveCurrentBookmark(api, { reopenPanel: true });
         return;
@@ -5787,9 +5057,7 @@ async function ensureBookmarkPanel(api) {
         return;
       }
 
-      const deleteButton = event.target.closest(
-        '[data-action="delete-bookmark"]',
-      );
+      const deleteButton = event.target.closest('[data-action="delete-bookmark"]');
       if (!deleteButton) {
         return;
       }
@@ -5797,16 +5065,14 @@ async function ensureBookmarkPanel(api) {
       if (!bookmarkId || !readerState.currentCacheEntry) {
         return;
       }
-      readerState.currentCacheEntry.bookmarks =
-        readerState.currentCacheEntry.bookmarks.filter(
-          (item) => item.id !== bookmarkId,
-        );
+      readerState.currentCacheEntry.bookmarks = readerState.currentCacheEntry.bookmarks.filter(
+        (item) => item.id !== bookmarkId,
+      );
       await persistCurrentCacheState(api);
       renderBookmarkRibbons();
       await openBookmarkPanel(api);
     });
-    const mountTarget =
-      document.querySelector(".novel-viewer") || document.body;
+    const mountTarget = document.querySelector(".novel-viewer") || document.body;
     mountTarget.appendChild(panel);
   }
   return panel;
@@ -5852,13 +5118,6 @@ async function ensureCacheManagerModal(api) {
                     <div class="nv-library-title">판본 관리</div>
                     <button class="nv-library-clear" type="button" data-action="clear-all-caches">전체 비우기</button>
                 </div>
-                <div class="nv-cache-toggle-row">
-                    <div class="nv-cache-toggle-info">
-                        <div class="nv-cache-toggle-label">판본 캐시</div>
-                        <div class="nv-cache-toggle-desc">끄면 매번 새로 렌더링</div>
-                    </div>
-                    <button class="nv-cache-toggle-switch on" data-action="toggle-cache"></button>
-                </div>
                 <div class="nv-library-current-label">읽고 있는 세션</div>
                 <div class="nv-cache-current"></div>
                 <div class="nv-library-section-header">
@@ -5874,17 +5133,6 @@ async function ensureCacheManagerModal(api) {
         overlay.classList.remove("open");
         syncReplyComposerOverlayVisibility().catch(() => {});
       });
-    const cacheToggle = overlay.querySelector('[data-action="toggle-cache"]');
-    if (cacheToggle) {
-      getPluginStorageItem(api, "cacheEnabled", false).then((val) => {
-        cacheToggle.classList.toggle("on", val !== false);
-      });
-      cacheToggle.addEventListener("click", async () => {
-        const current = cacheToggle.classList.contains("on");
-        cacheToggle.classList.toggle("on", !current);
-        await setPluginStorageItem(api, "cacheEnabled", !current);
-      });
-    }
     overlay
       .querySelector('[data-action="clear-all-caches"]')
       ?.addEventListener("click", async () => {
@@ -5893,7 +5141,6 @@ async function ensureCacheManagerModal(api) {
         }
         await clearReaderEditionCaches(api);
         readerState.currentCacheEntry = null;
-        readerState.lastPersistedCacheSignature = null;
         await openCacheManagerModal(api);
       });
     overlay.addEventListener("click", async (event) => {
@@ -5914,8 +5161,7 @@ async function ensureCacheManagerModal(api) {
       }
       await openCacheManagerModal(api);
     });
-    const mountTarget =
-      document.querySelector(".novel-viewer") || document.body;
+    const mountTarget = document.querySelector(".novel-viewer") || document.body;
     mountTarget.appendChild(overlay);
   }
   return overlay;
@@ -5940,8 +5186,7 @@ async function openCacheManagerModal(api) {
   }
   const countEl = overlay.querySelector(".nv-library-section-count");
   if (countEl) {
-    countEl.textContent =
-      index.entries.length > 0 ? `${index.entries.length}권` : "";
+    countEl.textContent = index.entries.length > 0 ? `${index.entries.length}권` : "";
   }
   overlay.classList.add("open");
   syncReplyComposerOverlayVisibility().catch(() => {});
@@ -5958,9 +5203,7 @@ function toggleReaderOverlay() {
 
 function hideReaderOverlay() {
   document.querySelector(".novel-header")?.classList.remove("overlay-visible");
-  document
-    .querySelector(".novel-page-footer")
-    ?.classList.remove("overlay-visible");
+  document.querySelector(".novel-page-footer")?.classList.remove("overlay-visible");
 }
 
 // ── 텍스트 편집 ──
@@ -6013,11 +5256,7 @@ function hideEditPopover() {
 
 function ensureEditModal() {
   let modal = document.getElementById("nv-edit-modal");
-  if (modal)
-    return {
-      backdrop: document.getElementById("nv-edit-modal-backdrop"),
-      modal,
-    };
+  if (modal) return { backdrop: document.getElementById("nv-edit-modal-backdrop"), modal };
   const backdrop = document.createElement("div");
   backdrop.id = "nv-edit-modal-backdrop";
   backdrop.className = "nv-edit-modal-backdrop";
@@ -6076,12 +5315,8 @@ async function saveEditedMessage(api) {
   if (!context) return;
 
   try {
-    const chat = await api.getChatFromIndex(
-      context.characterIndex,
-      context.chatIndex,
-    );
-    if (!chat || !Array.isArray(chat.message) || !chat.message[messageIndex])
-      return;
+    const chat = await api.getChatFromIndex(context.characterIndex, context.chatIndex);
+    if (!chat || !Array.isArray(chat.message) || !chat.message[messageIndex]) return;
 
     chat.message[messageIndex].data = newText;
     await api.setChatToIndex(context.characterIndex, context.chatIndex, chat);
@@ -6114,8 +5349,7 @@ async function saveEditedMessage(api) {
 
 function ensureHidePatternSheet() {
   let backdrop = document.getElementById("nv-hidepattern-backdrop");
-  if (backdrop)
-    return { backdrop, sheet: document.getElementById("nv-hidepattern-sheet") };
+  if (backdrop) return { backdrop, sheet: document.getElementById("nv-hidepattern-sheet") };
 
   backdrop = document.createElement("div");
   backdrop.id = "nv-hidepattern-backdrop";
@@ -6152,19 +5386,14 @@ function renderHidePatternList() {
   if (!list) return;
   const patterns = readerState.hidePatterns;
   if (!patterns.length) {
-    list.innerHTML =
-      '<div style="color:var(--nv-text-muted);font-size:12px;padding:8px 0;font-family:var(--nv-ui-font)">등록된 패턴이 없습니다.</div>';
+    list.innerHTML = '<div style="color:var(--nv-text-muted);font-size:12px;padding:8px 0;font-family:var(--nv-ui-font)">등록된 패턴이 없습니다.</div>';
     return;
   }
-  list.innerHTML = patterns
-    .map(
-      (p, i) => `
+  list.innerHTML = patterns.map((p, i) => `
     <div class="nv-hidepattern-item">
       <code>${escapeHtml(p)}</code>
       <button class="nv-hidepattern-remove" data-action="remove-hide-pattern" data-pattern-index="${i}">×</button>
-    </div>`,
-    )
-    .join("");
+    </div>`).join("");
 }
 
 function openHidePatternSheet() {
@@ -6219,9 +5448,7 @@ function updateBookmarkIcon() {
         `[data-reader-anchor="true"][data-message-index="${bm.messageIndex}"][data-paragraph-index="${bm.paragraphIndex}"]`,
       );
       if (!anchor) return false;
-      return (
-        Math.floor(anchor.offsetLeft / Math.max(pageWidth, 1)) === currentPage
-      );
+      return Math.floor(anchor.offsetLeft / Math.max(pageWidth, 1)) === currentPage;
     });
   }
 
@@ -6245,9 +5472,7 @@ function renderBookmarkRibbons() {
   const bookmarks = readerState.currentCacheEntry?.bookmarks;
   if (!Array.isArray(bookmarks) || bookmarks.length === 0) return;
 
-  const portrait =
-    readerState.context?.personaPortrait ||
-    readerState.context?.characterPortrait;
+  const portrait = readerState.context?.personaPortrait || readerState.context?.characterPortrait;
   const bodyRect = bodyEl.getBoundingClientRect();
   const pageWidth = getPageWidth(contentEl);
   const currentPage = readerState.currentPage;
@@ -6289,10 +5514,9 @@ function updateProgressBar() {
     _progressFillEl = document.querySelector(".nv-progress-fill");
   }
   if (!_progressFillEl) return;
-  const pct =
-    readerState.totalPages > 1
-      ? (readerState.currentPage / (readerState.totalPages - 1)) * 100
-      : 0;
+  const pct = readerState.totalPages > 1
+    ? (readerState.currentPage / (readerState.totalPages - 1)) * 100
+    : 0;
   _progressFillEl.style.width = `${Math.min(100, pct)}%`;
 }
 
@@ -6308,9 +5532,7 @@ function installReaderEvents(api) {
   );
   const progressInput = getProgressInputElement();
   const menuButton = document.querySelector('[data-action="open-reader-menu"]');
-  const menuBackdrop = document.querySelector(
-    '[data-action="close-reader-menu"]',
-  );
+  const menuBackdrop = document.querySelector('[data-action="close-reader-menu"]');
   const openBookmarkManagerButton = document.querySelector(
     '[data-action="open-bookmark-manager"]',
   );
@@ -6435,16 +5657,11 @@ function installReaderEvents(api) {
           `[data-reader-anchor="true"][data-message-index="${bm.messageIndex}"][data-paragraph-index="${bm.paragraphIndex}"]`,
         );
         if (!anchor) return false;
-        return (
-          Math.floor(anchor.offsetLeft / Math.max(pageWidth2, 1)) ===
-          currentPage2
-        );
+        return Math.floor(anchor.offsetLeft / Math.max(pageWidth2, 1)) === currentPage2;
       });
       if (toRemove.length > 0) {
         const removeIds = new Set(toRemove.map((bm) => bm.id));
-        cacheEntry.bookmarks = cacheEntry.bookmarks.filter(
-          (item) => !removeIds.has(item.id),
-        );
+        cacheEntry.bookmarks = cacheEntry.bookmarks.filter((item) => !removeIds.has(item.id));
         await persistCurrentCacheState(api);
       }
       renderBookmarkRibbons();
@@ -6453,18 +5670,10 @@ function installReaderEvents(api) {
       await saveCurrentBookmark(api);
     }
   };
-  const onOpenMenu = () => {
-    openReaderMenu();
-  };
-  const onCloseMenu = () => {
-    closeReaderMenu();
-  };
-  const themeModalBtn = document.querySelector(
-    '[data-action="open-theme-modal"]',
-  );
-  const themeModalCloseEls = document.querySelectorAll(
-    '[data-action="close-theme-modal"]',
-  );
+  const onOpenMenu = () => { openReaderMenu(); };
+  const onCloseMenu = () => { closeReaderMenu(); };
+  const themeModalBtn = document.querySelector('[data-action="open-theme-modal"]');
+  const themeModalCloseEls = document.querySelectorAll('[data-action="close-theme-modal"]');
 
   const onOpenThemeModal = () => {
     closeReaderMenu();
@@ -6532,36 +5741,24 @@ function installReaderEvents(api) {
       const input = document.querySelector(".nv-hidepattern-input");
       const val = input?.value?.trim();
       if (!val) return;
-      try {
-        new RegExp(val);
-      } catch (_) {
-        return;
-      }
+      try { new RegExp(val); } catch (_) { return; }
       readerState.hidePatterns.push(val);
       await setPluginStorageItem(api, "hidePatterns", readerState.hidePatterns);
       if (input) input.value = "";
       renderHidePatternList();
       return;
     }
-    const removeBtn = event.target.closest(
-      '[data-action="remove-hide-pattern"]',
-    );
+    const removeBtn = event.target.closest('[data-action="remove-hide-pattern"]');
     if (removeBtn) {
       const idx = Number.parseInt(removeBtn.dataset.patternIndex, 10);
       if (Number.isFinite(idx) && idx >= 0) {
         readerState.hidePatterns.splice(idx, 1);
-        await setPluginStorageItem(
-          api,
-          "hidePatterns",
-          readerState.hidePatterns,
-        );
+        await setPluginStorageItem(api, "hidePatterns", readerState.hidePatterns);
         renderHidePatternList();
       }
       return;
     }
-    const closeBtn = event.target.closest(
-      '[data-action="close-hide-patterns"]',
-    );
+    const closeBtn = event.target.closest('[data-action="close-hide-patterns"]');
     if (closeBtn) {
       closeHidePatternSheet();
     }
@@ -6588,9 +5785,7 @@ function installReaderEvents(api) {
   contentEl.addEventListener("touchstart", onTouchStart, { passive: true });
   contentEl.addEventListener("touchend", onTouchEnd, { passive: true });
   closeLabelButton?.addEventListener("click", onClose);
-  const onSaveBookmarkSafe = () => {
-    onSaveBookmark().catch(() => {});
-  };
+  const onSaveBookmarkSafe = () => { onSaveBookmark().catch(() => {}); };
   bookmarkButton?.addEventListener("click", onSaveBookmarkSafe);
   contentEl.addEventListener("click", onContentClick);
 
@@ -6643,27 +5838,13 @@ function installReaderEvents(api) {
   menuButton?.addEventListener("click", onOpenMenu);
   menuBackdrop?.addEventListener("click", onCloseMenu);
   themeModalBtn?.addEventListener("click", onOpenThemeModal);
-  themeModalCloseEls.forEach((el) =>
-    el.addEventListener("click", onCloseThemeModal),
-  );
+  themeModalCloseEls.forEach((el) => el.addEventListener("click", onCloseThemeModal));
   openBookmarkManagerButton?.addEventListener("click", onOpenBookmarkManager);
   openCacheManagerButton?.addEventListener("click", onOpenCacheManager);
-  const hidePatternsBtn = document.querySelector(
-    '[data-action="open-hide-patterns"]',
-  );
+  const hidePatternsBtn = document.querySelector('[data-action="open-hide-patterns"]');
   hidePatternsBtn?.addEventListener("click", onOpenHidePatterns);
   document.addEventListener("click", onHidePatternAction);
   replyModeButton?.addEventListener("click", onToggleReplyMode);
-
-  const translationButton = document.querySelector(
-    '[data-action="toggle-page-translation"]',
-  );
-  const onToggleTranslation = () => {
-    toggleTranslationView(api);
-  };
-  translationButton?.addEventListener("click", onToggleTranslation);
-  showingTranslation = false;
-  updateTranslationLabel();
 
   readerState.cleanup = () => {
     readerState.settingsCleanup?.();
@@ -6689,20 +5870,13 @@ function installReaderEvents(api) {
     menuButton?.removeEventListener("click", onOpenMenu);
     menuBackdrop?.removeEventListener("click", onCloseMenu);
     themeModalBtn?.removeEventListener("click", onOpenThemeModal);
-    themeModalCloseEls.forEach((el) =>
-      el.removeEventListener("click", onCloseThemeModal),
-    );
-    openBookmarkManagerButton?.removeEventListener(
-      "click",
-      onOpenBookmarkManager,
-    );
+    themeModalCloseEls.forEach((el) => el.removeEventListener("click", onCloseThemeModal));
+    openBookmarkManagerButton?.removeEventListener("click", onOpenBookmarkManager);
     openCacheManagerButton?.removeEventListener("click", onOpenCacheManager);
     hidePatternsBtn?.removeEventListener("click", onOpenHidePatterns);
     document.removeEventListener("click", onHidePatternAction);
     closeHidePatternSheet();
     replyModeButton?.removeEventListener("click", onToggleReplyMode);
-    translationButton?.removeEventListener("click", onToggleTranslation);
-    showingTranslation = false;
     if (readerState.locationPersistTimer) {
       clearTimeout(readerState.locationPersistTimer);
       readerState.locationPersistTimer = null;
@@ -6775,10 +5949,6 @@ function renderReaderShell(context, api) {
                 <button class="nv-bottomsheet-item" type="button" data-action="open-hide-patterns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22"/></svg>
                     숨김 패턴
-                </button>
-                <button class="nv-bottomsheet-item" type="button" data-action="toggle-page-translation">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg>
-                    <span data-role="page-translation-label">현재 페이지 번역 보기</span>
                 </button>
                 <button class="nv-bottomsheet-item" type="button" data-action="toggle-reply-mode">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -6862,11 +6032,7 @@ async function loadCurrentReaderContext(api) {
     if (characterIndex < 0 || chatIndex < 0) {
       throw new Error("Timed out while resolving the current chat session.");
     }
-    const chat = await withTimeout(
-      api.getChatFromIndex(characterIndex, chatIndex),
-      15000,
-      null,
-    );
+    const chat = await withTimeout(api.getChatFromIndex(characterIndex, chatIndex), 15000, null);
     console.log("RisuBooks: current chat loaded", {
       hasChat: Boolean(chat),
       messageCount: Array.isArray(chat?.message) ? chat.message.length : -1,
@@ -6883,20 +6049,10 @@ async function loadCurrentReaderContext(api) {
     let characterPortrait = "";
     let personaPortrait = "";
     try {
-      character = await withTimeout(
-        api.getCharacterFromIndex(characterIndex),
-        10000,
-        null,
-      );
-      const db = await withTimeout(
-        api.getDatabase(["personas", "selectedPersona"]),
-        10000,
-        null,
-      );
+      character = await withTimeout(api.getCharacterFromIndex(characterIndex), 10000, null);
+      const db = await withTimeout(api.getDatabase(["personas", "selectedPersona"]), 10000, null);
       personas = Array.isArray(db?.personas) ? db.personas : [];
-      selectedPersona = Number.isInteger(db?.selectedPersona)
-        ? db.selectedPersona
-        : 0;
+      selectedPersona = Number.isInteger(db?.selectedPersona) ? db.selectedPersona : 0;
       activePersona = personas[selectedPersona] || null;
       characterPortrait = await loadAssetDataUrlSafe(api, character?.image);
       personaPortrait = activePersona?.icon
@@ -6933,9 +6089,7 @@ async function loadCurrentReaderContext(api) {
 
 async function prepareReaderEdition(api, context) {
   console.log("RisuBooks: preparing reader edition", {
-    messageCount: Array.isArray(context?.messages)
-      ? context.messages.length
-      : -1,
+    messageCount: Array.isArray(context?.messages) ? context.messages.length : -1,
   });
   const signature = buildReaderCacheSignature(context.messages);
   const signatureToken = serializeReaderCacheSignature(signature);
@@ -6943,21 +6097,16 @@ async function prepareReaderEdition(api, context) {
   readerState.currentCacheKey = cacheKey;
   readerState.currentCacheSignature = signature;
 
-  const cacheEnabled =
-    (await getPluginStorageItem(api, "cacheEnabled", false)) !== false;
-  let cacheEntry = null;
-  if (cacheEnabled) {
-    cacheEntry = await loadReaderEditionCache(api, cacheKey);
-    if (isReaderEditionCacheValid(cacheEntry, signature)) {
-      console.log("RisuBooks: using cached edition", { cacheKey });
-      readerState.currentCacheEntry = normalizeReaderEditionCache(cacheEntry);
-      readerState.lastPersistedCacheSignature = signatureToken;
-      return {
-        ...context,
-        processedMessageHtml: [],
-        renderedHtml: cacheEntry.renderedHtml,
-      };
-    }
+  const cacheEntry = await loadReaderEditionCache(api, cacheKey);
+  if (isReaderEditionCacheValid(cacheEntry, signature)) {
+    console.log("RisuBooks: using cached edition", { cacheKey });
+    readerState.currentCacheEntry = normalizeReaderEditionCache(cacheEntry);
+    readerState.lastPersistedCacheSignature = signatureToken;
+    return {
+      ...context,
+      processedMessageHtml: [],
+      renderedHtml: cacheEntry.renderedHtml,
+    };
   }
 
   renderLoadingState("리더 준비 중");
@@ -6979,7 +6128,6 @@ async function prepareReaderEdition(api, context) {
     messages,
   };
   const renderedHtml = renderMessageContent(editionContext);
-
   const nextCacheEntry = {
     cacheKey,
     cacheVersion: READER_EDITION_CACHE_VERSION,
@@ -6996,9 +6144,7 @@ async function prepareReaderEdition(api, context) {
       updatedAt: null,
     },
   };
-  if (cacheEnabled) {
-    await saveReaderEditionCache(api, context, nextCacheEntry);
-  }
+  await saveReaderEditionCache(api, context, nextCacheEntry);
   readerState.currentCacheEntry = normalizeReaderEditionCache(nextCacheEntry);
   readerState.lastPersistedCacheSignature = signatureToken;
   return {
@@ -7054,110 +6200,12 @@ async function openReader(api) {
   }
 }
 
-async function openSettingsPanel(api) {
-  await api.showContainer("fullscreen");
-  ensureReaderStyle();
-
-  const cacheEnabled =
-    (await getPluginStorageItem(api, "cacheEnabled", false)) !== false;
-  const index = await getReaderCacheIndex(api);
-
-  document.body.innerHTML = `
-    <div class="novel-viewer" data-theme="light">
-      <div class="nv-cache-manager-screen open">
-        <div class="nv-cache-manager-shell">
-          <div class="nv-library-header">
-            <button class="nv-overlay-btn" type="button" data-action="close-settings" aria-label="뒤로">${getNavIcon("prev")}</button>
-            <div class="nv-library-title">리수북스 설정</div>
-            <button class="nv-library-clear" type="button" data-action="clear-all-caches">전체 비우기</button>
-          </div>
-          <div class="nv-cache-toggle-row">
-            <div class="nv-cache-toggle-info">
-              <div class="nv-cache-toggle-label">판본 캐시</div>
-              <div class="nv-cache-toggle-desc">끄면 매번 새로 렌더링</div>
-            </div>
-            <button class="nv-cache-toggle-switch ${cacheEnabled ? "on" : ""}" data-action="toggle-cache"></button>
-          </div>
-          <div class="nv-library-section-header">
-            <div class="nv-library-section-title">저장된 판본</div>
-            <div class="nv-library-section-count">${index.entries.length}개</div>
-          </div>
-          <div class="nv-cache-list nv-library-grid">
-            ${
-              index.entries.length > 0
-                ? index.entries.map((entry) => renderCacheRow(entry)).join("")
-                : '<div class="nv-library-empty">저장된 판본이 없습니다.</div>'
-            }
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // 테마 적용
-  const viewer = document.querySelector(".novel-viewer");
-  if (viewer) {
-    const theme = readerState.theme || "light";
-    viewer.dataset.theme = theme;
-    const vars = THEME_VARS[theme];
-    if (vars) {
-      for (const [k, v] of Object.entries(vars)) {
-        viewer.style.setProperty(k, v);
-      }
-    }
-  }
-
-  // 닫기
-  document
-    .querySelector('[data-action="close-settings"]')
-    ?.addEventListener("click", async () => {
-      await api.hideContainer();
-    });
-
-  // 캐시 토글
-  const toggleBtn = document.querySelector('[data-action="toggle-cache"]');
-  toggleBtn?.addEventListener("click", async () => {
-    const current = toggleBtn.classList.contains("on");
-    toggleBtn.classList.toggle("on", !current);
-    await setPluginStorageItem(api, "cacheEnabled", !current);
-  });
-
-  // 전체 비우기
-  document
-    .querySelector('[data-action="clear-all-caches"]')
-    ?.addEventListener("click", async () => {
-      if (!confirm("저장된 판본을 모두 삭제합니다. 계속하시겠습니까?")) return;
-      await clearReaderEditionCaches(api);
-      readerState.currentCacheEntry = null;
-      readerState.lastPersistedCacheSignature = null;
-      await openSettingsPanel(api);
-    });
-
-  // 개별 삭제 (shell에 위임하여 리스너 누적 방지)
-  const shell = document.querySelector(".nv-cache-manager-shell");
-  shell?.addEventListener("click", async (event) => {
-    const button = event.target.closest('[data-action="delete-cache"]');
-    if (!button) return;
-    const cacheKey = button.dataset.cacheKey;
-    if (!cacheKey || !confirm("이 판본을 삭제하시겠습니까?")) return;
-    await deleteReaderEditionCache(api, cacheKey);
-    if (cacheKey === readerState.currentCacheKey) {
-      readerState.currentCacheEntry = null;
-    }
-    await openSettingsPanel(api);
-  });
-}
-
 (async () => {
   try {
     await risuai.registerSetting(
       "RisuBooks",
       async () => {
-        try {
-          await openSettingsPanel(risuai);
-        } catch (e) {
-          console.error("RisuBooks settings error:", e);
-        }
+        await openReader(risuai);
       },
       "📚",
       "html",
@@ -7171,14 +6219,10 @@ async function openSettingsPanel(api) {
         location: "chat",
       },
       async () => {
-        try {
-          await openReader(risuai);
-        } catch (e) {
-          console.error("RisuBooks reader error:", e);
-        }
+        await openReader(risuai);
       },
     );
   } catch (error) {
-    alert("RisuBooks bootstrap failed: " + (error?.message || String(error)) + "\n" + (error?.stack || ""));
+    await risuai.log(`RisuBooks bootstrap failed: ${error.message}`);
   }
 })();

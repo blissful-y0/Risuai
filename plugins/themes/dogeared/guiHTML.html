@@ -1,0 +1,57 @@
+<div class="reader-card">
+  <div class="reader-shell">
+    <div class="reader-bookmark">
+      <div class="reader-bookmark-art">
+        <risuicon></risuicon>
+      </div>
+      {{#when::{{role}}::is::char}}
+      <div class="reader-bookmark-role">
+        character
+      </div>
+      {{:else}}
+      <div class="reader-bookmark-role">
+        user
+      </div>
+      {{/when}}
+    </div>
+
+	    <div class="reader-main">
+	      <div class="reader-banner">
+	        <div class="reader-banner-art">
+	          <risuicon></risuicon>
+	        </div>
+	      </div>
+
+	      <div class="reader-header">
+	        <div class="reader-meta">
+	          <div class="reader-titleblock">
+	            {{#when::{{role}}::is::char}}
+	            <div class="reader-name reader-name-char">
+	              <span>{{char}}</span>
+	            </div>
+	            {{:else}}
+	            <div class="reader-name reader-name-user">
+	              <span>{{user}}</span>
+	            </div>
+	            {{/when}}
+	          </div>
+	          {{#when::{{role}}::is::char}}
+	          <div class="reader-info">
+	            <risugeninfo></risugeninfo>
+	          </div>
+	          {{/when}}
+	        </div>
+	      </div>
+
+      <div class="reader-body">
+        <risutextbox></risutextbox>
+      </div>
+
+      <div class="reader-actions">
+        <div class="reader-buttons">
+          <risubuttons></risubuttons>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<div class="main-container">
+  <div class="header-pill">
+    <div class="icon-nametag-container">
+      <div class="avatar-icon">
+        <risuicon></risuicon>
+      </div>
+      {{#when::{{role}}::is::char}}
+      <div class="name-badge-char">
+        <span>
+          {{char}}
+        </span>
+      </div>
+      {{:else}}
+      <div class="name-badge-user">
+        <span>
+          {{user}}
+        </span>
+      </div>
+      {{/when}}
+    </div>
+    <div class="scroll-right">
+      {{#when::{{role}}::is::char}}
+      <div class="info-pill">
+        <risugeninfo></risugeninfo>
+      </div>
+      {{/when}}
+      <div class="button-group">
+        <risubuttons></risubuttons>
+      </div>
+    </div>
+  </div>
+  <div class="content-body">
+    <risutextbox></risutextbox>
+  </div>
+</div>

@@ -1,0 +1,529 @@
+/* ── 폰트 선언 ── */
+
+/* 명조/세리프 */
+@font-face {
+    font-family: 'BookkMyungjo';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Lt.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'BookkMyungjo';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Bd.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'ChosunIlboMyungjo';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff') format('woff');
+    font-weight: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'JoseonGulim';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunGu.woff') format('woff');
+    font-weight: normal;
+    font-display: swap;
+}
+
+/* 고딕/산세리프 */
+@font-face { font-family: 'Pretendard'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Thin.woff2') format('woff2'); font-weight: 100; font-display: swap; }
+@font-face { font-family: 'Pretendard'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraLight.woff2') format('woff2'); font-weight: 200; font-display: swap; }
+@font-face { font-family: 'Pretendard'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Light.woff2') format('woff2'); font-weight: 300; font-display: swap; }
+@font-face { font-family: 'Pretendard'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Pretendard'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Pretendard'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Pretendard'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Pretendard'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraBold.woff2') format('woff2'); font-weight: 800; font-display: swap; }
+@font-face { font-family: 'Pretendard'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Black.woff2') format('woff2'); font-weight: 900; font-display: swap; }
+
+@font-face { font-family: 'Escoredream'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-1Thin.woff') format('woff'); font-weight: 100; font-display: swap; }
+@font-face { font-family: 'Escoredream'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-2ExtraLight.woff') format('woff'); font-weight: 200; font-display: swap; }
+@font-face { font-family: 'Escoredream'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-3Light.woff') format('woff'); font-weight: 300; font-display: swap; }
+@font-face { font-family: 'Escoredream'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff') format('woff'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Escoredream'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-5Medium.woff') format('woff'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Escoredream'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff') format('woff'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Escoredream'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-7ExtraBold.woff') format('woff'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Escoredream'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-8Heavy.woff') format('woff'); font-weight: 800; font-display: swap; }
+@font-face { font-family: 'Escoredream'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-9Black.woff') format('woff'); font-weight: 900; font-display: swap; }
+
+/* 손글씨/디스플레이 */
+@font-face {
+    font-family: 'OngleipKonkon';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2412-1@1.0/Ownglyph_corncorn-Rg.woff2') format('woff2');
+    font-weight: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'PeopleFirstTtobaks';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2406-2@1.0/PeoplefirstNeatLoudTTF.woff2') format('woff2');
+    font-weight: normal;
+    font-display: swap;
+}
+
+.risu-chat * {
+    font-family: 'BookkMyungjo', serif;
+}
+
+.risu-chat>div {
+    background-color: transparent !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 100vh;
+    padding: 0 !important;
+}
+
+/* ==================== 테마 변수 ==================== */
+
+.novel-viewer {
+    --nv-bg: #ffffff;
+    --nv-text: #000000;
+    --nv-text-muted: #999999;
+    --nv-header: #333333;
+    --nv-header-name: #000000;
+    --nv-highlight-bg: #e8e8e8;
+    --nv-highlight-text: #000000;
+    --nv-rule: #f4f4f4;
+    --nv-shadow: rgba(0, 0, 0, 0.15);
+    --nv-controls-bg: #ffffff;
+    --nv-controls-hover: rgba(0, 0, 0, 0.05);
+}
+
+.novel-viewer[data-theme="dark"] {
+    --nv-bg: #1c1a18;
+    --nv-text: #bfb49a;
+    --nv-text-muted: #7a7060;
+    --nv-header: #968a72;
+    --nv-header-name: #cfbfa0;
+    --nv-highlight-bg: #2c2824;
+    --nv-highlight-text: #ddd0b4;
+    --nv-rule: #2e2a26;
+    --nv-shadow: rgba(0, 0, 0, 0.6);
+    --nv-controls-bg: #181614;
+    --nv-controls-hover: rgba(190, 180, 150, 0.1);
+}
+
+.novel-viewer[data-theme="vintage"] {
+    --nv-bg: #f0e8d8;
+    --nv-text: #5c4430;
+    --nv-text-muted: #9e8060;
+    --nv-header: #7a5c40;
+    --nv-header-name: #5c4430;
+    --nv-highlight-bg: #e2d6c0;
+    --nv-highlight-text: #4a3420;
+    --nv-rule: #d8ccb4;
+    --nv-shadow: rgba(58, 48, 40, 0.14);
+    --nv-controls-bg: #e8dcc8;
+    --nv-controls-hover: rgba(58, 48, 40, 0.08);
+}
+
+/* ==================== 소설 뷰어 ==================== */
+
+.novel-viewer {
+    width: 65vw;       /* 🌟 [수정] 1100px → 65vw */
+    max-width: 90vw;
+    height: 80vh;      /* 🌟 [수정] 750px → 80vh */
+    max-height: 85vh;
+    background-color: var(--nv-bg);
+    border-radius: 24px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 20px 50px var(--nv-shadow);
+    overflow: hidden;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.novel-header {
+    padding: 30px 60px 0px 60px;
+    font-size: 14px;
+    color: var(--nv-header);
+    border-bottom: none;
+    flex-shrink: 0;
+    margin-bottom: 10px !important;
+    padding-bottom: 10px !important;
+}
+
+.to-label {
+    font-weight: bold;
+    color: var(--nv-header-name);
+    margin-right: 4px;
+}
+
+.to-name {
+    font-weight: bold;
+    color: var(--nv-header-name);
+}
+
+.bookmark-container {
+    display: block;
+    width: 340px;
+    height: 60px;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+    z-index: 5;
+}
+
+.bookmark-ribbon {
+    width: 100%;
+    height: 100%;
+    background: none;
+    box-shadow: none !important;
+    clip-path: polygon(0 0, 100% 0, 92% 50%, 100% 100%, 0 100%);
+    -webkit-clip-path: polygon(0 0, 100% 0, 92% 50%, 100% 100%, 0 100%);
+    overflow: hidden;
+}
+
+.bookmark-images {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+.bookmark-portrait {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+.bookmark-portrait>*,
+.bookmark-portrait>*>*,
+.bookmark-portrait>*>*>*,
+.bookmark-portrait img,
+.bookmark-portrait risuicon,
+.bookmark-portrait risuicon>*,
+.bookmark-portrait risuicon img {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    object-fit: cover !important;
+    object-position: center 40% !important;
+    background-size: cover !important;
+    background-position: center 40% !important;
+    background-repeat: no-repeat !important;
+    image-rendering: -webkit-optimize-contrast !important;
+    display: block !important;
+    border-radius: 0 !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+}
+
+.novel-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    padding: 0 60px;
+}
+
+.novel-content {
+    width: 100%;
+    height: 100%;
+    column-count: 2;
+    column-gap: 60px;
+    column-rule: 1px solid var(--nv-rule);
+    column-fill: auto !important;
+    text-align: justify;
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--nv-text) !important;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    padding: 10px 0 80px 0;
+    box-sizing: border-box;
+    scrollbar-width: none;
+}
+
+.novel-content::-webkit-scrollbar {
+    display: none;
+}
+
+.novel-content p {
+    text-indent: 1em !important;
+    margin: 0 0 0.5em 0 !important;
+    color: var(--nv-text) !important;
+}
+
+.novel-content mark[risu-mark="quote"],
+.novel-content mark[risu-mark="quote2"],
+.novel-content mark[risu-mark="speech"] {
+    background-color: var(--nv-highlight-bg) !important;
+    color: var(--nv-highlight-text) !important;
+    font-weight: 700 !important;
+    font-style: normal !important;
+    border-radius: 4px !important;
+    padding: 2px 4px !important;
+    margin: 0 2px !important;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+.novel-content em,
+.novel-content i,
+.novel-content mark[class*="italic"] {
+    background-color: transparent !important;
+    font-style: italic !important;
+    font-weight: normal !important;
+    color: inherit !important;
+}
+
+.novel-content strong,
+.novel-content b {
+    font-weight: 700 !important;
+    color: var(--nv-text) !important;
+}
+
+/* PC+모바일 공통 — 편집 모드 세로 스크롤 허용 */
+.novel-viewer:has(textarea) .novel-body,
+.novel-viewer:has([contenteditable="true"]) .novel-body {
+    overflow-y: auto;
+}
+
+.novel-viewer:has(textarea) .novel-content,
+.novel-viewer:has([contenteditable="true"]) .novel-content {
+    overflow-y: auto;
+    max-height: none;
+}
+
+.novel-content textarea,
+.novel-content [contenteditable="true"] {
+    width: 100%;
+    min-height: 300px;
+    max-height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+/* --- 하단 컨트롤 --- */
+.hidden-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 60px;
+    right: 60px;
+    height: 40px;
+    display: flex;
+    justify-content: space-between;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+}
+
+.novel-viewer:hover .hidden-controls {
+    opacity: 1;
+}
+
+.controls-left,
+.controls-right {
+    display: flex;
+    align-items: center;
+}
+
+.controls-left button,
+.controls-right button {
+    padding: 5px !important;
+    margin: 0 5px !important;
+    color: var(--nv-text-muted) !important;
+}
+
+.controls-left button:hover,
+.controls-right button:hover {
+    color: var(--nv-text) !important;
+    background: var(--nv-controls-hover) !important;
+}
+
+.controls-left svg {
+    width: 18px !important;
+    height: 18px !important;
+}
+
+/* ==================== 모바일 ==================== */
+@media screen and (max-width: 768px) {
+    .risu-chat>div {
+        align-items: flex-end !important;
+        min-height: auto !important;
+        padding-bottom: 30px !important;
+    }
+
+    .novel-viewer {
+        width: 92vw !important;
+        min-width: 92vw !important;
+        max-width: 92vw !important;
+        height: auto !important;
+        max-height: 80dvh;
+        border-radius: 20px;
+        margin: 0 auto 20px auto;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .novel-header {
+        padding: 20px 25px 0 25px;
+        margin-bottom: 15px !important;
+    }
+
+    .bookmark-container {
+        width: 250px;
+        height: 55px;
+        margin-bottom: 15px;
+    }
+
+    .novel-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden !important;
+        padding: 0 25px;
+        margin: 0;
+    }
+
+    .novel-content {
+        column-count: 1 !important;
+        column-width: 80vw !important;
+        column-gap: 30px !important;
+        column-rule: none !important;
+        column-fill: auto !important;
+        height: 100% !important;
+        max-height: none !important;
+        min-height: unset !important;
+        padding: 10px 0 20px 0;
+        overflow-x: scroll !important;
+        overflow-y: hidden !important;
+        font-size: 15px;
+        line-height: 1.9;
+        box-sizing: border-box;
+        scrollbar-width: none;
+    }
+
+    .novel-content::-webkit-scrollbar {
+        display: none;
+    }
+
+    .hidden-controls {
+        position: static;
+        opacity: 1;
+        background: var(--nv-controls-bg);
+        border-radius: 0 0 20px 20px;
+        padding: 10px 20px;
+        height: auto;
+        flex-shrink: 0;
+        margin-top: auto;
+    }
+
+    .controls-left button,
+    .controls-right button {
+        padding: 8px !important;
+        margin: 0 3px !important;
+    }
+
+    .controls-left svg {
+        width: 20px !important;
+        height: 20px !important;
+    }
+
+    /* 편집 모드 전용 */
+    .novel-viewer:has(textarea),
+    .novel-viewer:has([contenteditable="true"]) {
+        height: 80dvh !important;
+    }
+
+    .novel-viewer:has(textarea) .novel-body,
+    .novel-viewer:has([contenteditable="true"]) .novel-body {
+        flex: 1 1 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        touch-action: pan-y !important;
+        overscroll-behavior: contain !important;
+    }
+
+    .novel-viewer:has(textarea) .novel-content,
+    .novel-viewer:has([contenteditable="true"]) .novel-content {
+        touch-action: pan-y !important;
+        overscroll-behavior: contain !important;
+    }
+
+    .novel-content textarea,
+    .novel-content [contenteditable="true"] {
+        width: 100% !important;
+        height: 50dvh !important;
+        min-height: 50dvh !important;
+        max-height: 50dvh !important;
+        overflow-y: scroll !important;
+        touch-action: pan-y !important;
+        overscroll-behavior: contain !important;
+        box-sizing: border-box !important;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .novel-header {
+        padding: 15px 20px 0 20px;
+        font-size: 13px;
+    }
+
+    .bookmark-container {
+        width: 200px;
+        height: 50px;
+    }
+
+    .novel-body {
+        padding: 0 20px;
+    }
+
+    .novel-content {
+        padding: 15px 0 20px 0;
+        font-size: 14px;
+        line-height: 1.85;
+    }
+
+    .hidden-controls {
+        padding: 8px 15px;
+    }
+}
+
+.novel-viewer .hidden-controls .controls-right>.flex-col {
+    display: flex;
+    flex-direction: row !important;
+    align-items: center;
+    white-space: nowrap;
+}
+
+@media screen and (max-width: 768px) {
+    .hidden-controls {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 4px;
+    }
+
+    .hidden-controls button {
+        font-size: 0 !important;
+        padding: 6px !important;
+    }
+
+    .hidden-controls button>*:not(svg):not(i) {
+        display: none !important;
+    }
+
+    .hidden-controls button>svg,
+    .hidden-controls button>i {
+        display: inline-block !important;
+        width: 18px !important;
+        height: 18px !important;
+    }
+}

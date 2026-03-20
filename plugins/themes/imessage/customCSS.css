@@ -1,0 +1,803 @@
+/* ═══════════════════════════════════════════════════════════════
+   iMessage Theme for RisuAI
+   ───────────────────────────────────────────────────────────────
+   Design:
+     · iOS/macOS 메시지 앱 재현
+     · 유저: 우측 파란 버블  /  캐릭터: 좌측 회색 버블
+     · 버블 꼬리(tail) — CSS pseudo-element
+     · SF Pro / Inter 폰트 스택
+     · 대사(quote): 버블 내 자연스러운 톤 변화
+     · 반응형 (태블릿 + 모바일)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 폰트 ── */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+
+/* ── CSS 변수 ── */
+:root {
+  /* 배경 */
+  /*--imsg-bg:              #000000;
+    --imsg-bg-chat:         #000000;*/
+
+  /* 유저 버블 (파란색) */
+  --imsg-user-bubble: #0a7cdb;
+  --imsg-user-text: #ffffff;
+  --imsg-user-link: #b3e0ff;
+
+  /* 캐릭터 버블 (회색) */
+  --imsg-char-bubble: #26262a;
+  --imsg-char-text: #e5e5ea;
+  --imsg-char-text-sub: #8e8e93;
+  --imsg-char-link: #0a84ff;
+
+  /* UI */
+  --imsg-name-color: #8e8e93;
+  --imsg-meta-color: #636366;
+  --imsg-radius: 18px;
+  --imsg-max-bubble: 90%;
+  --imsg-font:
+    "Inter", -apple-system, "SF Pro Text", "SF Pro Display", "Helvetica Neue",
+    system-ui, sans-serif;
+  --imsg-fs: 15px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RisuAI 부모 래퍼 강제 리셋
+   ───────────────────────────────────────────────────────────────
+   DOM 구조:
+     .risu-chat (.flex.max-w-full.justify-center)
+       > div (.text-textcolor.mt-1.ml-4.mr-4.mb-1.p-2.flexium.items-start...)
+           > [customHTML rendered here]
+   ═══════════════════════════════════════════════════════════════ */
+.risu-chat {
+  font-family: var(--imsg-font) !important;
+  font-size: var(--imsg-fs) !important;
+  background: var(--imsg-bg-chat) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* justify-center 제거 — 풀 와이드 */
+  justify-content: stretch !important;
+  max-width: 100vw !important;
+}
+
+/* 내부 래퍼 — flexium, padding, margin 전부 무력화 */
+.risu-chat > div {
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  max-width: 1200px !important;
+  background: transparent !important;
+  border: none !important;
+  color: inherit !important;
+  align-items: unset !important;
+  flex-direction: unset !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   메시지 컨테이너
+   ═══════════════════════════════════════════════════════════════ */
+.imsg {
+  display: block !important;
+  width: 100% !important;
+  margin: 2px 0 !important;
+  padding: 0 16px !important;
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  box-sizing: border-box !important;
+}
+
+/* ── 행 레이아웃 ── */
+.imsg__row {
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+/* 기본(캐릭터) + 명시적 캐릭터: 좌측 정렬 */
+.imsg .imsg__row,
+.imsg--char .imsg__row {
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+}
+
+/* 유저: 우측 정렬 */
+.imsg--user .imsg__row {
+  flex-direction: row-reverse !important;
+  justify-content: flex-start !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   아바타
+   ═══════════════════════════════════════════════════════════════ */
+.imsg__avatar {
+  flex-shrink: 0 !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  margin-bottom: 2px !important;
+  display: block !important;
+}
+
+.imsg__avatar > *,
+.imsg__avatar img,
+.imsg__avatar div {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  background-size: cover !important;
+  background-position: center !important;
+  box-shadow: none !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* 유저: 아바타 숨김 */
+/* 유저: 아바타 표시 */
+.imsg--user .imsg__avatar {
+  display: block !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   버블 래퍼
+   ═══════════════════════════════════════════════════════════════ */
+.imsg__bubble-wrap {
+  max-width: var(--imsg-max-bubble) !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.imsg:not(.imsg--user) .imsg__bubble-wrap,
+.imsg--char .imsg__bubble-wrap {
+  align-items: flex-start !important;
+}
+
+.imsg--user .imsg__bubble-wrap {
+  align-items: flex-end !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   발신자 이름
+   ═══════════════════════════════════════════════════════════════ */
+.imsg__name {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--imsg-name-color) !important;
+  padding: 0 14px !important;
+  margin-bottom: 2px !important;
+  letter-spacing: 0.01em !important;
+}
+
+.imsg--user .imsg__name {
+  display: block !important;
+  text-align: right !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   메시지 버블
+   ═══════════════════════════════════════════════════════════════ */
+.imsg__bubble {
+  position: relative !important;
+  padding: 10px 14px !important;
+  border-radius: var(--imsg-radius) !important;
+  line-height: 1.75 !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  font-size: var(--imsg-fs) !important;
+  display: block !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* 기본(캐릭터) + 명시적 캐릭터 버블 */
+.imsg:not(.imsg--user) .imsg__bubble,
+.imsg--char .imsg__bubble {
+  background: var(--imsg-char-bubble) !important;
+  color: var(--imsg-char-text) !important;
+  border-bottom-left-radius: 4px !important;
+}
+
+/* 기본(캐릭터) + 명시적 캐릭터 버블 꼬리 */
+.imsg:not(.imsg--user) .imsg__bubble::before,
+.imsg--char .imsg__bubble::before {
+  content: "" !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: -6px !important;
+  width: 12px !important;
+  height: 16px !important;
+  display: block !important;
+  background: var(--imsg-char-bubble) !important;
+  border-bottom-right-radius: 12px 10px !important;
+  clip-path: path("M 12 0 Q 12 16, 0 16 L 12 16 Z") !important;
+}
+
+/* 유저 버블 */
+.imsg--user .imsg__bubble {
+  background: var(--imsg-user-bubble) !important;
+  color: var(--imsg-user-text) !important;
+  border-bottom-right-radius: 4px !important;
+}
+
+/* 유저 버블 안 모든 텍스트 순백 보장 */
+.imsg--user .imsg__bubble,
+.imsg--user .imsg__bubble p,
+.imsg--user .imsg__bubble span,
+.imsg--user .imsg__bubble li,
+.imsg--user .imsg__bubble mark,
+.imsg--user .imsg__bubble div {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* 유저 버블 꼬리 */
+.imsg--user .imsg__bubble::after {
+  content: "" !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  right: -6px !important;
+  width: 12px !important;
+  height: 16px !important;
+  display: block !important;
+  background: var(--imsg-user-bubble) !important;
+  border-bottom-left-radius: 12px 10px !important;
+  clip-path: path("M 0 0 Q 0 16, 12 16 L 0 16 Z") !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   버블 내 타이포그래피
+   ═══════════════════════════════════════════════════════════════ */
+.imsg__bubble p {
+  margin: 0 0 10px 0 !important;
+  padding: 0 !important;
+  line-height: 1.75 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.imsg__bubble p:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* 문단 사이 시각적 구분 */
+.imsg__bubble p + p {
+  margin-top: 4px !important;
+}
+
+/* 헤딩 외 모든 텍스트 폰트 사이즈 통일 */
+.imsg__bubble p,
+.imsg__bubble li,
+.imsg__bubble span,
+.imsg__bubble em,
+.imsg__bubble strong,
+.imsg__bubble mark,
+.imsg__bubble a,
+.imsg__bubble del,
+.imsg__bubble u {
+  font-size: var(--imsg-fs) !important;
+}
+
+/* 강조 (bold) */
+.imsg__bubble strong {
+  font-weight: 600 !important;
+}
+
+.imsg--char .imsg__bubble strong {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.imsg--user .imsg__bubble strong {
+  color: var(--imsg-user-text) !important;
+  -webkit-text-fill-color: var(--imsg-user-text) !important;
+}
+
+/* 기울임 (em) — 지문/서술: 톤 낮춰서 대사와 구분 */
+.imsg__bubble em {
+  font-style: italic !important;
+  font-size: var(--imsg-fs) !important;
+}
+
+.imsg--char .imsg__bubble em {
+  color: #a0a0a5 !important;
+  -webkit-text-fill-color: #a0a0a5 !important;
+}
+
+.imsg--user .imsg__bubble em {
+  color: rgba(255, 255, 255, 0.9) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 제목 */
+.imsg__bubble h1,
+.imsg__bubble h2,
+.imsg__bubble h3 {
+  font-weight: 600 !important;
+  margin: 8px 0 4px 0 !important;
+  padding: 0 !important;
+  line-height: 1.3 !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+}
+
+.imsg--char .imsg__bubble h1,
+.imsg--char .imsg__bubble h2,
+.imsg--char .imsg__bubble h3 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.imsg--user .imsg__bubble h1,
+.imsg--user .imsg__bubble h2,
+.imsg--user .imsg__bubble h3 {
+  color: var(--imsg-user-text) !important;
+  -webkit-text-fill-color: var(--imsg-user-text) !important;
+}
+
+.imsg__bubble h1 {
+  font-size: 17px !important;
+}
+.imsg__bubble h2 {
+  font-size: 16px !important;
+}
+.imsg__bubble h3 {
+  font-size: 15px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   대사 스타일 — risu-mark
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 큰따옴표 ("대화") — 밝은 톤, 약간 강조 ── */
+.imsg__bubble mark[risu-mark="quote2"] {
+  display: inline !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 1px 4px !important;
+  margin: 0 !important;
+  font-weight: 500 !important;
+  font-size: var(--imsg-fs) !important;
+  box-decoration-break: clone !important;
+  -webkit-box-decoration-break: clone !important;
+  letter-spacing: 0em !important;
+}
+
+.imsg--char .imsg__bubble mark[risu-mark="quote2"] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.imsg--user .imsg__bubble mark[risu-mark="quote2"] {
+  color: var(--imsg-user-text) !important;
+  -webkit-text-fill-color: var(--imsg-user-text) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ── 작은따옴표 ('독백') — 약간 어두운 톤 ── */
+.imsg__bubble mark[risu-mark="quote1"] {
+  display: inline !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+  font-size: var(--imsg-fs) !important;
+  box-decoration-break: clone !important;
+  -webkit-box-decoration-break: clone !important;
+}
+
+.imsg--char .imsg__bubble mark[risu-mark="quote1"] {
+  color: var(--imsg-char-text-sub) !important;
+  -webkit-text-fill-color: var(--imsg-char-text-sub) !important;
+}
+
+.imsg--user .imsg__bubble mark[risu-mark="quote1"] {
+  color: rgba(255, 255, 255, 0.92) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* ── 블록 인용 ── */
+.imsg__bubble mark[risu-mark="blockquote1"],
+.imsg__bubble mark[risu-mark="blockquote2"] {
+  display: block !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-left: 3px solid rgba(255, 255, 255, 0.18) !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-radius: 0 6px 6px 0 !important;
+  padding: 8px 12px !important;
+  margin: 8px 0 !important;
+  font-style: italic !important;
+  line-height: 1.7 !important;
+}
+
+.imsg--char .imsg__bubble mark[risu-mark="blockquote1"],
+.imsg--char .imsg__bubble mark[risu-mark="blockquote2"] {
+  color: var(--imsg-char-text-sub) !important;
+  -webkit-text-fill-color: var(--imsg-char-text-sub) !important;
+}
+
+.imsg--user .imsg__bubble mark[risu-mark="blockquote1"],
+.imsg--user .imsg__bubble mark[risu-mark="blockquote2"] {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-left-color: rgba(255, 255, 255, 0.4) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* ── 구분선 (HR) — 장면 전환 ── */
+.imsg__bubble hr {
+  border: none !important;
+  height: 1px !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  margin: 12px 0 !important;
+}
+
+.imsg--user .imsg__bubble hr {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   링크
+   ═══════════════════════════════════════════════════════════════ */
+.imsg--char .imsg__bubble a {
+  color: var(--imsg-char-link) !important;
+  text-decoration: underline !important;
+}
+
+.imsg--user .imsg__bubble a {
+  color: var(--imsg-user-link) !important;
+  text-decoration: underline !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   코드 블록
+   ═══════════════════════════════════════════════════════════════ */
+.imsg__bubble code {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace !important;
+  font-size: 0.88em !important;
+  padding: 1px 5px !important;
+  border-radius: 4px !important;
+}
+
+.imsg--char .imsg__bubble code {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--imsg-char-text) !important;
+}
+
+.imsg--user .imsg__bubble code {
+  background: rgba(0, 0, 0, 0.15) !important;
+  color: var(--imsg-user-text) !important;
+}
+
+.imsg__bubble pre {
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  overflow-x: auto !important;
+  margin: 6px 0 !important;
+}
+
+.imsg--char .imsg__bubble pre {
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+.imsg--user .imsg__bubble pre {
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
+.imsg__bubble pre code {
+  background: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   리스트
+   ═══════════════════════════════════════════════════════════════ */
+.imsg__bubble ul,
+.imsg__bubble ol {
+  margin: 4px 0 !important;
+  padding-left: 1.4em !important;
+}
+
+.imsg__bubble li {
+  margin-bottom: 4px !important;
+  line-height: 1.7 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   테이블
+   ═══════════════════════════════════════════════════════════════ */
+.imsg__bubble table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 8px 0 !important;
+  font-size: var(--imsg-fs) !important;
+}
+
+.imsg__bubble th,
+.imsg__bubble td {
+  padding: 6px 10px !important;
+  text-align: left !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.imsg__bubble th {
+  font-weight: 600 !important;
+  border-bottom-width: 2px !important;
+  border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.imsg--char .imsg__bubble th {
+  color: #ffffff !important;
+}
+
+.imsg--user .imsg__bubble th,
+.imsg--user .imsg__bubble td {
+  border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   이미지 (버블 내)
+   ═══════════════════════════════════════════════════════════════ */
+.imsg__bubble img {
+  max-width: 100% !important;
+  border-radius: 12px !important;
+  margin: 4px 0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   메타 (생성 정보 + 액션 버튼)
+   ═══════════════════════════════════════════════════════════════ */
+.imsg__meta {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 3px 6px 0 !important;
+  min-height: 20px !important;
+}
+
+.imsg--char .imsg__meta {
+  flex-direction: row !important;
+}
+
+.imsg--user .imsg__meta {
+  flex-direction: row-reverse !important;
+}
+
+/* 생성 정보 */
+.imsg__geninfo {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  flex-shrink: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.imsg__geninfo > div {
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+
+.imsg__geninfo span {
+  color: var(--imsg-meta-color) !important;
+  font-size: 10px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.imsg__geninfo button {
+  background: none !important;
+  border: none !important;
+  color: var(--imsg-meta-color) !important;
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+  cursor: pointer !important;
+  border-radius: 8px !important;
+  transition: background 0.15s !important;
+}
+
+.imsg__geninfo button:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #aeaeb2 !important;
+}
+
+/* 액션 버튼 */
+.imsg__actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+  opacity: 0 !important;
+  transition: opacity 0.2s !important;
+}
+
+.imsg:hover .imsg__actions {
+  opacity: 1 !important;
+}
+
+.imsg__actions button {
+  background: none !important;
+  border: none !important;
+  color: var(--imsg-meta-color) !important;
+  padding: 3px !important;
+  cursor: pointer !important;
+  border-radius: 6px !important;
+  transition: all 0.15s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.imsg__actions button:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #aeaeb2 !important;
+}
+
+.imsg__actions button svg,
+.imsg__actions button span {
+  width: 13px !important;
+  height: 13px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   스크롤바 — macOS 스타일
+   ═══════════════════════════════════════════════════════════════ */
+.risu-chat::-webkit-scrollbar {
+  width: 6px;
+}
+
+.risu-chat::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.risu-chat::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.risu-chat::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   메시지 편집 영역
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 편집 모드 — 버블+textarea 풀 사이즈 유지 */
+textarea.message-edit-area {
+  color: var(--imsg-char-text) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 12px !important;
+  font-family: var(--imsg-font) !important;
+  font-size: var(--imsg-fs) !important;
+  width: 100% !important;
+  min-height: 120px !important;
+  box-sizing: border-box !important;
+}
+
+/* 편집 모드: bubble + bubble-wrap 강제 확장 */
+.imsg__bubble-wrap:has(textarea),
+.imsg__bubble-wrap:has(.message-edit-area) {
+  width: var(--imsg-max-bubble) !important;
+  max-width: var(--imsg-max-bubble) !important;
+}
+
+.imsg__bubble:has(textarea),
+.imsg__bubble:has(.message-edit-area) {
+  width: 100% !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   태블릿 (1024px 이하)
+   ═══════════════════════════════════════════════════════════════ */
+@media screen and (max-width: 1024px) {
+  :root {
+    --imsg-max-bubble: 92%;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   모바일 (768px 이하)
+   ═══════════════════════════════════════════════════════════════ */
+@media screen and (max-width: 768px) {
+  :root {
+    --imsg-max-bubble: 85%;
+    --imsg-fs: 14px;
+    --imsg-radius: 20px;
+  }
+
+  .imsg {
+    padding: 0 8px !important;
+  }
+
+  .imsg__avatar {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+  }
+
+  .imsg__avatar > *,
+  .imsg__avatar img,
+  .imsg__avatar div {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+  }
+
+  .imsg__bubble {
+    padding: 10px 14px !important;
+  }
+
+  .imsg__name {
+    font-size: 10px !important;
+    padding: 0 12px !important;
+  }
+
+  /* 모바일: 액션 항상 반투명 표시 */
+  .imsg__actions {
+    opacity: 0.5 !important;
+  }
+
+  .imsg__actions button svg,
+  .imsg__actions button span {
+    width: 15px !important;
+    height: 15px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   소형 모바일 (480px 이하)
+   ═══════════════════════════════════════════════════════════════ */
+@media screen and (max-width: 480px) {
+  :root {
+    --imsg-max-bubble: 88%;
+  }
+
+  .imsg__avatar {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+  }
+
+  .imsg__avatar > *,
+  .imsg__avatar img,
+  .imsg__avatar div {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+  }
+
+  .imsg__row {
+    gap: 6px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   유틸리티
+   ═══════════════════════════════════════════════════════════════ */
+.imsg__bubble > :first-child {
+  margin-top: 0 !important;
+}
+
+.imsg__bubble > :last-child {
+  margin-bottom: 0 !important;
+}

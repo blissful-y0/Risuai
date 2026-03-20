@@ -1,0 +1,583 @@
+/* 짬뽕 상단바 테마 커스텀 CSS v2.0 */
+
+/* 0. 폰트 */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* 0-1. 안드로이드 크롬 강제 다크모드 무력화 */
+html,
+body,
+.risu-chat,
+.main-container {
+  color-scheme: only light !important;
+}
+
+/* 1. 색상 및 스타일 변수 */
+:root {
+  color-scheme: only light;
+
+  /* 폰트 */
+  --cp-font: "Pretendard Variable", "Inter", -apple-system, "Helvetica Neue",
+    system-ui, sans-serif;
+
+  /* [배경 및 텍스트] */
+  --cp-main-bg: rgba(0, 0, 0, 0.55);
+  --cp-header-bg: #2a2a2a;
+
+  /* [본문 텍스트 색상] */
+  --cp-text-color: #eaf6ff;
+  --cp-text-sub: #b0bec5;
+  --cp-bold-color: #ffffff;
+
+  /* [이름표 색상] */
+  --cp-badge-char-bg: #ff6b6b;
+  --cp-badge-char-text: #fff;
+  --cp-badge-user-bg: #4ecdc4;
+  --cp-badge-user-text: #fff;
+
+  /* [기타 요소] */
+  --cp-avatar-bg: #333;
+  --cp-info-bg: #444;
+  --cp-info-text: #ccc;
+  --cp-info-text-hover: #fff;
+
+  /* [액션 버튼] */
+  --cp-btn-bg: rgba(255, 255, 255, 0.2);
+  --cp-btn-hover-bg: rgba(255, 255, 255, 0.4);
+  --cp-btn-icon: #fff;
+
+  /* [인용구(Quote) 설정] */
+  --cp-quote1-color: #ffcadf;
+  --cp-quote2-color: #a8c8ff;
+
+  /* [인용구 크기 및 두께] */
+  --cp-quote-size: 1.02em;
+  --cp-quote1-weight: 400;
+  --cp-quote2-weight: 600;
+}
+
+/* 2. 전역 폰트 적용 */
+.risu-chat,
+.risu-chat * {
+  font-family: var(--cp-font) !important;
+}
+
+/* 3. 채팅창 레이아웃 */
+.risu-chat > div {
+  width: 100%;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.risu-chat > div > div {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 4. 메시지 박스 (Glassmorphism) */
+.main-container {
+  width: 95%;
+  max-width: 60em;
+  margin: 0.5rem auto;
+
+  background-color: var(--cp-main-bg);
+  backdrop-filter: blur(4px) saturate(100%);
+  -webkit-backdrop-filter: blur(4px) saturate(100%);
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 8px;
+
+  position: relative;
+  scroll-margin-top: 80px;
+  font-family: var(--cp-font) !important;
+}
+
+/* 5. 상단 헤더 (Sticky) — grid: 좌=이름, 우=info+버튼 */
+.header-pill {
+  position: sticky;
+  top: 5px;
+  z-index: 10;
+
+  background-color: var(--cp-header-bg);
+  border-radius: 40px;
+  padding: 0 8px;
+  height: 48px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: center;
+  box-sizing: border-box;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* 6. 편집 창 (Textarea) */
+.risu-chat textarea {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  color: var(--cp-text-color) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 8px;
+  font-family: var(--cp-font) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   아이콘 · 이름표 영역
+   ═══════════════════════════════════════════════════════════════ */
+.icon-nametag-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* 이름표 공통 — 가변 width, 공간 부족 시 ellipsis */
+.name-badge-char,
+.name-badge-user {
+  font-weight: 700;
+  font-size: 13px;
+  height: 26px;
+  border-radius: 16px;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: default;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.name-badge-char span,
+.name-badge-user span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.name-badge-char {
+  background-color: var(--cp-badge-char-bg);
+  color: var(--cp-badge-char-text);
+}
+.name-badge-user {
+  background-color: var(--cp-badge-user-bg);
+  color: var(--cp-badge-user-text);
+}
+
+
+/* 아바타 아이콘 */
+.avatar-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: var(--cp-avatar-bg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.avatar-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   오른쪽 스크롤 영역 (info pill + buttons)
+   ═══════════════════════════════════════════════════════════════ */
+.scroll-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: 100%;
+  flex: 1 1 auto;
+  padding-right: 5px;
+  justify-content: flex-end;
+  overflow: visible;
+}
+
+/* 정보 알약 — 모델명 잘림 방지 */
+.info-pill {
+  background-color: var(--cp-info-bg);
+  padding: 0 12px;
+  height: 28px;
+  border-radius: 9999px;
+  min-width: max-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  flex-shrink: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.info-pill button {
+  background: transparent !important;
+  color: var(--cp-info-text) !important;
+  border: none !important;
+  border-radius: inherit !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  line-height: 1 !important;
+  font-size: inherit !important;
+  text-indent: 0 !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+}
+
+.info-pill button:hover {
+  background: transparent !important;
+  color: var(--cp-info-text-hover) !important;
+}
+
+.info-pill button span {
+  margin-left: 0 !important;
+}
+
+.info-pill button svg {
+  stroke: currentColor !important;
+  width: 15px !important;
+  height: 15px !important;
+  min-width: 15px !important;
+  min-height: 15px !important;
+}
+
+/* info-pill 내부 요소 잘림 방지 */
+.info-pill > *,
+.info-pill span,
+.info-pill div {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  min-width: max-content !important;
+}
+.risu-chat [class*="hover:ring-darkbutton"] {
+  color: var(--cp-info-text);
+}
+.risu-chat [class*="hover:ring-darkbutton"]:hover {
+  --tw-ring-color: transparent;
+  color: var(--cp-info-text-hover);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   버튼 그룹 — 중앙 정렬 수정
+   ═══════════════════════════════════════════════════════════════ */
+.button-group {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.button-group > div,
+.button-group risubuttons {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  align-items: center;
+}
+
+/* 버튼 — risubuttons 내부 포함 모든 button 강제 중앙정렬 */
+.button-group button {
+  background: var(--cp-btn-bg) !important;
+  color: var(--cp-btn-icon) !important;
+  border: none !important;
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  transition: background-color 0.2s ease !important;
+  cursor: pointer !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+  box-sizing: border-box !important;
+  vertical-align: middle !important;
+  text-indent: 0 !important;
+  overflow: hidden !important;
+}
+
+.button-group button:hover {
+  background: var(--cp-btn-hover-bg) !important;
+}
+
+.button-group button svg {
+  stroke: var(--cp-btn-icon) !important;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  vertical-align: middle !important;
+}
+
+/* 버튼 내부 span/div 등 래퍼 중앙정렬 */
+.button-group button > * {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   본문 텍스트
+   ═══════════════════════════════════════════════════════════════ */
+.content-body {
+  padding: 0;
+}
+
+.content-body p,
+.content-body li {
+  color: var(--cp-text-color);
+  font-weight: 400;
+  line-height: 1.7;
+  margin-bottom: 0.8em;
+  letter-spacing: -0.01em;
+}
+
+.content-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* 제목 및 강조 */
+.content-body strong,
+.content-body h1,
+.content-body h2,
+.content-body h3 {
+  color: var(--cp-bold-color);
+  font-weight: 700;
+}
+
+.content-body h1 { font-size: 1.2em; margin: 12px 0 6px; }
+.content-body h2 { font-size: 1.1em; margin: 10px 0 5px; }
+.content-body h3 { font-size: 1.05em; margin: 8px 0 4px; }
+
+/* 기울임(em) — 서술/지문 */
+.content-body em {
+  color: var(--cp-text-sub);
+  font-style: italic;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   인용구(Quote) — 그라데이션 제거, 단색 + 좌측 바
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Quote 1 (핑크 — 독백/내면) */
+.content-body mark[risu-mark="quote1"] {
+  display: inline;
+  color: var(--cp-quote1-color) !important;
+  -webkit-text-fill-color: var(--cp-quote1-color) !important;
+  background: transparent !important;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-style: italic;
+  font-size: var(--cp-quote-size);
+  font-weight: var(--cp-quote1-weight);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Quote 2 (블루 — 대화) */
+.content-body mark[risu-mark="quote2"] {
+  display: inline;
+  color: var(--cp-quote2-color) !important;
+  -webkit-text-fill-color: var(--cp-quote2-color) !important;
+  background: transparent !important;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: var(--cp-quote-size);
+  font-weight: var(--cp-quote2-weight);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Quote 내부 요소 색상 복원 */
+.content-body mark[risu-mark="quote2"] * {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+}
+
+/* 블록 인용 */
+.content-body mark[risu-mark="blockquote1"],
+.content-body mark[risu-mark="blockquote2"] {
+  display: block;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-left: 3px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0 6px 6px 0;
+  padding: 8px 12px;
+  margin: 8px 0;
+  font-style: italic;
+  color: var(--cp-text-sub);
+  line-height: 1.65;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   코드 블록
+   ═══════════════════════════════════════════════════════════════ */
+.content-body code {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace !important;
+  font-size: 0.88em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--cp-text-color);
+}
+
+.content-body pre {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.content-body pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   구분선 (HR)
+   ═══════════════════════════════════════════════════════════════ */
+.content-body hr {
+  border: none;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 14px 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   리스트
+   ═══════════════════════════════════════════════════════════════ */
+.content-body ul,
+.content-body ol {
+  margin: 6px 0;
+  padding-left: 1.4em;
+}
+
+.content-body li {
+  margin-bottom: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   테이블
+   ═══════════════════════════════════════════════════════════════ */
+.content-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 0.95em;
+}
+
+.content-body th,
+.content-body td {
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.content-body th {
+  font-weight: 600;
+  color: var(--cp-bold-color);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   기타 유틸리티
+   ═══════════════════════════════════════════════════════════════ */
+.risu-chat .text.chattext {
+  word-break: keep-all;
+}
+.rs-setting-cont-4 {
+  max-width: 833px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   반응형 — 모바일
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .risu-chat > div > div {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .main-container {
+    width: 95vw;
+    margin: 0.5rem auto;
+    padding: 16px;
+  }
+
+  .header-pill {
+    height: 44px;
+    padding: 0 6px;
+  }
+
+  .button-group button {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    max-width: 30px !important;
+    max-height: 30px !important;
+  }
+
+  .button-group button svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .content-body p,
+  .content-body li {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-container {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .name-badge-char,
+  .name-badge-user {
+    font-size: 12px;
+  }
+}

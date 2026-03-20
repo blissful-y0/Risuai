@@ -1,0 +1,34 @@
+<!-- iMessage Theme · role별 버블 레이아웃 -->
+<div class="imsg {{#if {{equal::{{role}}::user}}}}imsg--user{{/if}} {{#if {{equal::{{role}}::char}}}}imsg--char{{/if}}">
+    <div class="imsg__row">
+
+        <!-- 아바타 (캐릭터만) -->
+        <div class="imsg__avatar">
+            <risuicon></risuicon>
+        </div>
+
+        <!-- 버블 영역 -->
+        <div class="imsg__bubble-wrap">
+            <!-- 발신자 이름 -->
+            <div class="imsg__name">
+                {{#if {{equal::{{role}}::char}}}}{{char}}{{/if}}{{#if {{equal::{{role}}::user}}}}{{user}}{{/if}}
+            </div>
+
+            <!-- 메시지 버블 -->
+            <div class="imsg__bubble">
+                <risutextbox></risutextbox>
+            </div>
+
+            <!-- 하단: 시간 + 버튼 -->
+            <div class="imsg__meta">
+                <div class="imsg__geninfo">
+                    <risugeninfo></risugeninfo>
+                </div>
+                <div class="imsg__actions">
+                    <risubuttons></risubuttons>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

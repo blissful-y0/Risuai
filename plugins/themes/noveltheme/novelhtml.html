@@ -1,0 +1,34 @@
+<div class="novel-viewer">
+  <div class="novel-header">
+    <span class="to-label">From.</span>
+    <span class="to-name">
+      {{#if {{equal::{{role}}::char}}}}{{char}}{{/if}}{{#if
+      {{not_equal::{{role}}::char}}}}{{user}}{{/if}}
+    </span>
+  </div>
+
+  <div class="bookmark-container">
+    <div class="bookmark-ribbon">
+      <div class="bookmark-images">
+        <div class="bookmark-portrait">
+          <risuicon>{{char_avatar}}</risuicon>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="novel-body">
+    <div class="novel-content">
+      <risutextbox></risutextbox>
+    </div>
+  </div>
+
+  <div class="hidden-controls">
+    <div class="controls-left">
+      <risubuttons></risubuttons>
+    </div>
+    <div class="controls-right">
+      <risugeninfo></risugeninfo>
+    </div>
+  </div>
+</div>
