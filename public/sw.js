@@ -1,5 +1,15 @@
 // @ts-nocheck
 
+self.addEventListener('install', (event) => {
+    // 업데이트 직후 waiting 상태에 오래 머물지 않도록 새 워커를 바로 활성 후보로 올린다.
+    event.waitUntil(self.skipWaiting())
+})
+
+self.addEventListener('activate', (event) => {
+    // 첫 설치/업데이트 직후에도 현재 페이지를 바로 점유해 /sw/init이 origin으로 새지 않게 한다.
+    event.waitUntil(self.clients.claim())
+})
+
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url)
     const path = url.pathname.split('/')

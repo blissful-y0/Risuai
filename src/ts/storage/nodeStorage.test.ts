@@ -129,4 +129,30 @@ describe('NodeStorage', () => {
         expect(fetchMock).toHaveBeenCalledWith('/api/login', expect.anything())
         expect(fetchMock).toHaveBeenCalledWith('/api/read', expect.anything())
     })
+
+    test('비밀번호 설정 API가 plain text 오류를 반환해도 원문 메시지를 보존한다', async () => {
+        const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+            const url = String(input)
+            if (url === '/api/test_auth') {
+                return makeJsonResponse({ status: 'unset' })
+            }
+            if (url === '/api/crypto') {
+                return new Response('hashed-password', { status: 200 })
+            }
+            if (url === '/api/set_password') {
+                return new Response('already set', { status: 400 })
+            }
+            throw new Error(`unexpected fetch: ${url}`)
+        })
+        vi.stubGlobal('fetch', fetchMock)
+
+        const storage = new NodeStorage()
+        vi.spyOn(storage, 'createAuth').mockResolvedValue('header.payload.signature')
+        vi.spyOn(storage, 'getKeyPair').mockResolvedValue({
+            privateKey: {} as CryptoKey,
+            publicKey: {} as CryptoKey,
+        })
+
+        await expect(storage.getItem('database/database.bin')).rejects.toBe('already set')
+    })
 })

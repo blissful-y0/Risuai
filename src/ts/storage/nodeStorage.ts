@@ -135,20 +135,19 @@ export class NodeStorage{
 
     // 인증 실패 원인을 getItem/setItem 일반 오류로 덮어쓰지 않기 위해 서버 응답 메시지를 최대한 보존한다.
     private async getResponseError(response: Response, fallback: string) {
+        const text = await response.text()
+        if (text.trim() === '') {
+            return fallback
+        }
+
         try {
-            const data = await response.json()
+            const data = JSON.parse(text)
             if (typeof data?.error === 'string' && data.error.trim() !== '') {
                 return data.error
             }
-        } catch (error) {
-            try {
-                const text = await response.text()
-                if (text.trim() !== '') {
-                    return text
-                }
-            } catch (_innerError) {}
-        }
-        return fallback
+        } catch (error) {}
+
+        return text
     }
 
     // 최초 비밀번호 설정 직후에도 같은 공개키를 바로 등록해야 다음 getItem 요청이 Unknown public key로 깨지지 않는다.
