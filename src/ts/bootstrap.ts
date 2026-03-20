@@ -41,8 +41,9 @@ import {
     setUsingSw,
     checkCharOrder
 } from "./globalApi.svelte";
-import { isTauri } from "./platform";
+import { isNodeServer, isTauri } from "./platform";
 import { registerModelDynamic } from "./model/modellist";
+import { shouldEnableServiceWorker } from "./serviceWorkerPolicy";
 
 const appWindow = isTauri ? getCurrentWebviewWindow() : null
 
@@ -177,7 +178,12 @@ export async function loadData() {
                     return
                 }
                 LoadingStatusState.text = "Checking Service Worker..."
-                if (navigator.serviceWorker) {
+                // Node self-host에서는 서비스워커 대신 서버가 자산을 직접 내리므로 /sw 초기화를 아예 건너뛴다.
+                if (shouldEnableServiceWorker({
+                    hasServiceWorker: !!navigator.serviceWorker,
+                    isNodeServer,
+                    isTauri,
+                })) {
                     setUsingSw(true)
                     await registerSw()
                 }
