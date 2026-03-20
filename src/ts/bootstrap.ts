@@ -41,8 +41,10 @@ import {
     setUsingSw,
     checkCharOrder
 } from "./globalApi.svelte";
-import { isTauri } from "./platform";
+import { isNodeServer, isTauri } from "./platform";
 import { registerModelDynamic } from "./model/modellist";
+import { shouldEnableServiceWorker } from "./serviceWorkerPolicy";
+import { waitForServiceWorkerControl } from "./serviceWorkerControl";
 
 const appWindow = isTauri ? getCurrentWebviewWindow() : null
 
@@ -177,9 +179,15 @@ export async function loadData() {
                     return
                 }
                 LoadingStatusState.text = "Checking Service Worker..."
-                if (navigator.serviceWorker) {
-                    setUsingSw(true)
-                    await registerSw()
+                // Node self-host에서는 기본적으로 SW를 끄되, PWA 용도로 서버가 켠 경우만 다시 허용한다.
+                if (shouldEnableServiceWorker({
+                    allowNodeServiceWorker: getNodeServiceWorkerFlag(),
+                    hasServiceWorker: !!navigator.serviceWorker,
+                    isNodeServer,
+                    isTauri,
+                })) {
+                    const isServiceWorkerReady = await registerSw()
+                    setUsingSw(isServiceWorkerReady)
                 }
                 else {
                     setUsingSw(false)
@@ -266,11 +274,25 @@ async function registerSw() {
     await navigator.serviceWorker.register("/sw.js", {
         scope: "/"
     });
-    await sleep(100);
+
+    // install만 된 상태에서는 /sw/init 요청이 origin으로 가 404가 날 수 있으니 controller를 기다린다.
+    const hasController = await waitForServiceWorkerControl(navigator.serviceWorker, sleep)
+    if (!hasController) {
+        return false
+    }
+
     const da = await fetch('/sw/init');
     if (!(da.status >= 200 && da.status < 300)) {
-        location.reload();
+        return false
     }
+
+    return true
+}
+
+function getNodeServiceWorkerFlag() {
+    return !!(globalThis as typeof globalThis & {
+        __RISU_ENABLE_SERVICE_WORKER__?: boolean
+    }).__RISU_ENABLE_SERVICE_WORKER__
 }
 
 /**

@@ -133,6 +133,57 @@ export class NodeStorage{
         }
     }
 
+    // 인증 실패 원인을 getItem/setItem 일반 오류로 덮어쓰지 않기 위해 서버 응답 메시지를 최대한 보존한다.
+    private async getResponseError(response: Response, fallback: string) {
+        const text = await response.text()
+        if (text.trim() === '') {
+            return fallback
+        }
+
+        try {
+            const data = JSON.parse(text)
+            if (typeof data?.error === 'string' && data.error.trim() !== '') {
+                return data.error
+            }
+        } catch (error) {}
+
+        return text
+    }
+
+    // 최초 비밀번호 설정 직후에도 같은 공개키를 바로 등록해야 다음 getItem 요청이 Unknown public key로 깨지지 않는다.
+    private async loginWithPassword(password: string) {
+        const keypair = await this.getKeyPair()
+        const publicKey = await crypto.subtle.exportKey('jwk', keypair.publicKey)
+
+        const response = await fetch('/api/login',{
+            method: "POST",
+            body: JSON.stringify({
+                password,
+                publicKey
+            }),
+            headers: {
+                'content-type': 'application/json'
+            }
+        })
+
+        if(response.status === 429){
+            alertError(`Too many attempts. Please wait and try again later.`)
+            await waitAlert()
+            throw new Error('Too many attempts. Please wait and try again later.')
+        }
+
+        if(!response.ok){
+            throw await this.getResponseError(response, 'Node login failed')
+        }
+
+        const data = await response.json()
+        if(data?.error){
+            throw data.error
+        }
+
+        this.authChecked = true
+    }
+
     private async checkAuth(){
 
         if(!this.authChecked){
@@ -144,7 +195,7 @@ export class NodeStorage{
 
             if(data.status === 'unset'){
                 const input = await digestPassword(await alertInput(language.setNodePassword))
-                await fetch('/api/set_password',{
+                const response = await fetch('/api/set_password',{
                     method: "POST",
                     body:JSON.stringify({
                         password: input 
@@ -153,31 +204,15 @@ export class NodeStorage{
                         'content-type': 'application/json'
                     }
                 })
+                if(!response.ok){
+                    throw await this.getResponseError(response, 'Failed to set node password')
+                }
+                await this.loginWithPassword(input)
                 return await this.createAuth()
             }
             else if(data.status === 'incorrect'){
-                const keypair = await this.getKeyPair()
-                const publicKey = await crypto.subtle.exportKey('jwk', keypair.publicKey)
                 const input = await digestPassword(await alertInput(language.inputNodePassword))
-
-                const s = await fetch('/api/login',{
-                    method: "POST",
-                    body: JSON.stringify({
-                        password: input,
-                        publicKey: publicKey
-                    }),
-                    headers: {
-                        'content-type': 'application/json'
-                    }
-                })
-
-                //too many requests
-                if(s.status === 429){
-                    alertError(`Too many attempts. Please wait and try again later.`)
-                    await waitAlert()
-                }
-                
-
+                await this.loginWithPassword(input)
                 return await this.createAuth()
             
             }

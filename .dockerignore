@@ -1,1 +1,13 @@
+# 로컬 의존성은 컨테이너 안에서 다시 설치하므로 빌드 컨텍스트에서 제외한다.
 node_modules
+
+# Git 메타데이터와 worktree는 이미지 빌드에 필요하지 않다.
+.git
+.worktrees
+
+# 로컬 작업용 문서/스크린샷/임시 파일은 런타임에 필요하지 않다.
+docs
+.playwright-cli
+.tmp_gigatrans
+mockup-*.png
+plugin-ui.png
